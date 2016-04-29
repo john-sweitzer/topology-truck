@@ -107,7 +107,8 @@ with_chef_server(
 debug_config = "log_level :info \n"\
   'verify_api_cert false'
 
-driver_stage_machine_opts = node[project][stage][topo_truck_parms.driver_type]['config']['machine_options']
+############################################# old code
+#driver_stage_machine_opts = node[project][stage][topo_truck_parms.driver_type]['config']['machine_options']
   
   # Now we are ready to provision the nodes in each of the topologies
   topology_list.each  do |topology|
@@ -132,31 +133,35 @@ driver_stage_machine_opts = node[project][stage][topo_truck_parms.driver_type]['
                          " #{topology_name} NODE:  #{node_details.name}"
                          )
                          
-        Chef::Log.warn(
-                        '*** Machine Options...   ' \
-                        " #{driver_stage_machine_opts} "
-                       )
-                       
-                       
                        
         # Prepare a new machine / node for a chef client run...
         machine node_details.name do
             action [:setup]
             converge false
             chef_environment delivery_environment    #todo: logic for topology environments
-            machine_options( # driver_stage_machine_opts.to_hash
-                                transport_options: {
-                                    'ip_address' => node_details.ssh_host,
-                                    'username' => 'vagrant',
-                                    'ssh_options' => {
-                                            'password' => 'vagrant'
-                                    }
-                                },
-                                convergence_options: {
-                                    ssl_verify_mode: :verify_none,
-                                    chef_config: debug_config
-                                }
-                            )
+            
+            add_machine_options {transport_options: {ip_address: node_details.ssh_host}} if node_details.ssh_host
+            add_machine_options {convergence_options: {ssl_verify_mode: :verify_none}}
+            add_machine_options {convergence_options: {chef_config: debug_config} if debug_config
+                add_machine_options {bootstrap_options: {
+                    key_name: ssh_key['name'],
+                    key_path: ssh_private_key_path
+                }} if topo_truck_parms.driver_type == 'aws'
+            
+            
+            #     machine_options( # driver_stage_machine_opts.to_hash
+            #                    transport_options: {
+            #                        'ip_address' => node_details.ssh_host,
+            #                        'username' => 'vagrant',
+            #                        'ssh_options' => {
+            #                                'password' => 'vagrant'
+            #                        }
+            #                    },
+            #                    convergence_options: {
+            #                        ssl_verify_mode: :verify_none,
+            #                        chef_config: debug_config
+            #                    }
+            #                )
         end
         
         # hack...to overcome this message....

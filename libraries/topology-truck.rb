@@ -67,6 +67,10 @@ class Topo
           stage_topology = @raw_data['stage_topology'] || {}
           @topologies = stage_topology[stage] || []
       end
+
+      ############### Temporary code until we decide how to prime intitial value
+      @ssh_username = 'vagrant'
+      @password - 'vagrant'
       
       
     end
