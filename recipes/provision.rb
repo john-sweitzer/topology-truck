@@ -18,11 +18,12 @@ raw_data['topology-truck'] = node['delivery']['config']['topology-truck']
 
 topo_truck_parms = Topo::ConfigurationParameter.new(raw_data.to_hash,stage) if raw_data['topology-truck']
 
-Chef::Log.warn("raw_data....         #{raw_data}")
-Chef::Log.warn("driver....           #{topo_truck_parms.driver()}")
-Chef::Log.warn("driver_type....      #{topo_truck_parms.driver_type()}")
-Chef::Log.warn("machine_options      #{topo_truck_parms.machine_options()}")
-Chef::Log.warn("topologies....       #{topo_truck_parms.topologyList()}")
+Chef::Log.warn("raw_data....                    #{raw_data}")
+Chef::Log.warn("driver....                      #{topo_truck_parms.driver()}")
+Chef::Log.warn("driver_type....                 #{topo_truck_parms.driver_type()}")
+Chef::Log.warn("machine_options_template        #{topo_truck_parms.machine_options()}")
+Chef::Log.warn("machine_options_pipeline        #{topo_truck_parms.pipeline_machine_options()}")
+Chef::Log.warn("topologies....                  #{topo_truck_parms.topologyList()}")
 
 
 # Decrypt the SSH private key Chef provisioning uses to connect to the
@@ -46,7 +47,8 @@ end
 # Load AWS credentials.
 include_recipe "#{cookbook_name}::_aws_creds" if topo_truck_parms.driver_type == 'aws'
 
-
+# Machine options will start with the template for the active driver...
+with_machine_options(topo_truck_parms.machine_options)
 
 # Initialize the provisioning driver after loading it..
 require 'chef/provisioning/ssh_driver' if topo_truck_parms.driver_type == 'ssh'

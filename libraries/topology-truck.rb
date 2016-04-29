@@ -57,8 +57,8 @@ class Topo
             else
                 @driver_type = "default"
             end
-          
-            @machine_options = @raw_data['provision']['machine_options'] || {}
+            # Machine options in the ./delivery/config.json are options for the pipeline
+            @pipeline_machine_options = @raw_data['provision']['machine_options'] || {}
         else
             Chef::Log.warn("Unable to find configuration details for topology-truck so cannot deploy topologies")
         end
@@ -82,8 +82,87 @@ class Topo
       'default'
     end
 
+    # @treturns machine option template based on driver type...
+    # These templates are derived from patterns in Chef's Delivery-Cluster cookbook...
     def machine_options
-            return @machine_options if @machine_options
+        master_template = {}
+        
+        master_template = 
+        {
+            convergence_options: {
+                bootstrap_proxy: @bootstrap_proxy,
+                chef_config: @chef_config,
+                chef_version: @chef_version,
+                install_sh_path: @install_sh_path
+            },
+          bootstrap_options: {
+                instance_type:      @flavor,
+                key_name:           @key_name,
+                security_group_ids: @security_group_ids
+          },
+          ssh_username:           @ssh_username,
+          image_id:               @image_id,
+          use_private_ip_for_ssh: @use_private_ip_for_ssh
+
+        } if driver_type = 'aws'
+
+        # Add any optional machine options
+        require 'chef/mixin/deep_merge' if driver_type = 'aws'
+        opts = Chef::Mixin::DeepMerge.hash_only_merge(opts, bootstrap_options: { subnet_id: @subnet_id }) if @subnet_id && driver_type = 'aws'
+
+
+        master_template = 
+        {
+          convergence_options: {
+                bootstrap_proxy: @bootstrap_proxy,
+                chef_config: @chef_config,
+                chef_version: @chef_version,
+                install_sh_path: @install_sh_path
+          },
+          vagrant_options: {
+                'vm.box' => @vm_box,
+                'vm.box_url' => @image_url,
+                'vm.hostname' => @vm_hostname
+          },
+          vagrant_config: @vagrant_config, # memory and cpu, required
+          transport_options: {
+                options: {
+                    prefix: @prefix
+                }
+          },
+          use_private_ip_for_ssh: @use_private_ip_for_ssh
+
+        } if driver_type = 'vagrant'
+
+
+       master_template = 
+       {
+            convergence_options: {
+            bootstrap_proxy: @bootstrap_proxy,
+            chef_config: @chef_config,
+            chef_version: @chef_version,
+            install_sh_path: @install_sh_path
+          },
+          transport_options: {
+            username: @ssh_username,
+            ssh_options: {
+              user: @ssh_username,
+              password: @password,
+              keys: @key_file.nil? ? [] : [@key_file]
+            },
+            options: {
+              prefix: @prefix
+            }
+          }
+
+              } if driver_type = 'ssh'
+
+
+        master_template
+    end
+
+    def pipeline_machine_options
+            return @pipeline_machine_options if @pipeline_machine_options
             {}
     end
 
