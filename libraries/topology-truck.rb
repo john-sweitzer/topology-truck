@@ -70,7 +70,7 @@ class Topo
 
       ############### Temporary code until we decide how to prime intitial value
       @ssh_username = 'vagrant'
-      @password - 'vagrant'
+      @password = 'vagrant'
       
       
     end

@@ -140,13 +140,13 @@ debug_config = "log_level :info \n"\
             converge false
             chef_environment delivery_environment    #todo: logic for topology environments
             
-            add_machine_options {transport_options: {ip_address: node_details.ssh_host}} if node_details.ssh_host
-            add_machine_options {convergence_options: {ssl_verify_mode: :verify_none}}
-            add_machine_options {convergence_options: {chef_config: debug_config} if debug_config
-                add_machine_options {bootstrap_options: {
+            add_machine_options transport_options: {ip_address: node_details.ssh_host} if node_details.ssh_host
+            add_machine_options convergence_options: {ssl_verify_mode: :verify_none}
+            add_machine_options convergence_options: {chef_config: debug_config} if debug_config
+            add_machine_options bootstrap_options: {
                     key_name: ssh_key['name'],
                     key_path: ssh_private_key_path
-                }} if topo_truck_parms.driver_type == 'aws'
+                } if topo_truck_parms.driver_type == 'aws'
             
             
             #     machine_options( # driver_stage_machine_opts.to_hash
