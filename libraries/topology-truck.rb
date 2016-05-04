@@ -69,8 +69,8 @@ class Topo
       end
 
       ############### Temporary code until we decide how to prime intitial value
-      @ssh_username = 'vagrant'
-      @password = 'vagrant'
+      @ssh_user = 'vagrant'
+      @ssh_user_pwd = 'vagrant'
       
       
     end
@@ -100,11 +100,11 @@ class Topo
                 install_sh_path: @install_sh_path
             },
           bootstrap_options: {
-                instance_type:      @flavor,
+                instance_type:      @instance_type,
                 key_name:           @key_name,
                 security_group_ids: @security_group_ids
           },
-          ssh_username:           @ssh_username,
+          ssh_username:           @aws_ssh_user,
           image_id:               @image_id,
           use_private_ip_for_ssh: @use_private_ip_for_ssh
 
@@ -128,7 +128,7 @@ class Topo
                 'vm.box_url' => @image_url,
                 'vm.hostname' => @vm_hostname
           },
-          vagrant_config: @vagrant_config, # memory and cpu, required
+          vagrant_config: @vagrant_config, # Be sure config includes cpu, memory
           transport_options: {
                 options: {
                     prefix: @prefix
@@ -148,10 +148,10 @@ class Topo
             install_sh_path: @install_sh_path
           },
           transport_options: {
-            username: @ssh_username,
+            username: @ssh_user,
             ssh_options: {
-              user: @ssh_username,
-              password: @password,
+              user: @ssh_user,
+              password: @ssh_user_pwd,
               keys: @key_file.nil? ? [] : [@key_file]
             },
             options: {
