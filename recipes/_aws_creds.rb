@@ -1,8 +1,10 @@
-#
+ #
 # Cookbook Name:: topology-truck
 # Recipe:: _aws_creds
 #
-# Copyright:: Copyright (c) 2016 ThirdWave Insights, LLC
+# This code is from an example in the Chef Delivery tutorial that instructed
+# folks to include this code for handling aws credential with Chef Delivery.
+#
 # License:: Apache License, Version 2.0
 
 with_server_config do
