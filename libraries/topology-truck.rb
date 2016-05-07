@@ -71,6 +71,7 @@ class Topo
       ############### Temporary code until we decide how to prime intitial value
       @ssh_username = 'vagrant'
       @password = 'vagrant'
+      @chef_version = '12.8.1'
       
       
     end
