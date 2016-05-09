@@ -72,6 +72,11 @@ class Topo
           @union_topologies         = stage_details['union']['topologies'] || [] if stage_details['union']
           @rehearsal_topologies      = stage_details['rehearsal']['topologies'] || [] if stage_details['rehearsal']
           @delivered_topologies     = stage_details['delivered']['topologies'] || [] if stage_details['delivered']
+          
+          @pipeline_topologies =    @acceptance_topologies +
+                                    @union_topologies +
+                                    @rehearsal_topologies +
+                                    @delivered_topologies
       end
 
 
