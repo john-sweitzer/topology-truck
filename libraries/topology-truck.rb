@@ -20,7 +20,7 @@ require_relative './node'
 class Topo
   # Handle config.json for topology-truck
   class ConfigurationParameter
-    @config = {}
+    @stage_topologies = {}
 
 
     # class method to get or create Topo instance
