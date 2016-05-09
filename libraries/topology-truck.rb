@@ -67,11 +67,11 @@ class Topo
       
       # Do we have stages detail...
       if @raw_data['stages']
-          stage_details = @raw_data['stages'] || {} 
-          @acceptance_topologies    = stage_details['acceptance']['topologies'] || [] if stages_details['acceptance']
-          @union_topologies         = stage_details['union']['topologies'] || [] if stages_details['union']
-          @rehersal_topologies      = stage_details['rehersal']['topologies'] || [] if stages_details['rehearsal']
-          @delivered_topologies     = stage_details['delivered']['topologies'] || [] if stages_details['delivered']
+          stage_details = @raw_data['stages'] || {}
+          @acceptance_topologies    = stage_details['acceptance']['topologies'] || [] if stage_details['acceptance']
+          @union_topologies         = stage_details['union']['topologies'] || [] if stage_details['union']
+          @rehersal_topologies      = stage_details['rehersal']['topologies'] || [] if stage_details['rehearsal']
+          @delivered_topologies     = stage_details['delivered']['topologies'] || [] if stage_details['delivered']
       end
 
 
