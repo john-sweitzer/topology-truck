@@ -20,7 +20,7 @@ topo_truck_parms = Topo::ConfigurationParameter.new(raw_data.to_hash,stage) if r
 
 Chef::Log.warn("driver:                      #{topo_truck_parms.driver()}")
 
-unsupportedDriver = topo_truck_parms.driver() == 'aws' || topo_truck_parms.driver() == 'ssh'
+unsupportedDriver = topo_truck_parms.driver() != 'aws' && topo_truck_parms.driver() != 'ssh'
 
 Chef::Log.warn("unsupporteddriver:                      #{unsupportedDriver}")
 raise ArgumentError, " '#{topo_truck_parms.driver()}' is not a supported Chef provisioning driver at this time. Try using 'ssh' or 'aws' " if unsupportedDriver
