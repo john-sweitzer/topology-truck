@@ -67,7 +67,7 @@ class Topo
       
       # Do we have stages detail...
       if @raw_data['stages']
-          stage_details = @raw_data['stage'][stage] || {}    # details for the active stage?
+          stage_details = @raw_data['stages'][stage] || {}    # details for the active stage?
           @topologies = stage_details['topologies'] || []
       end
 
