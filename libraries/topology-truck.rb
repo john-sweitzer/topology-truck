@@ -190,11 +190,6 @@ class Topo
             {}
     end
 
-    def topologyList
-            return @topologies if @topologies
-            []
-    end
-
     def topologyListForStage(stage)
         return @acceptance_topologies if stage == 'acceptance'
         return @union_topologies if stage == 'union'
