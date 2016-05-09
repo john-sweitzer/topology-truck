@@ -19,7 +19,7 @@ raw_data['topology-truck'] = node['delivery']['config']['topology-truck']
 topo_truck_parms = Topo::ConfigurationParameter.new(raw_data.to_hash,stage) if raw_data['topology-truck']
 
 unsupportedDriver = topo_truck_parms.driver() == 'aws' || topo_truck_parms.driver() == 'ssh'
-raise ArgumentError, " '#{{topo_truck_parms.driver()}' is not a supported Chef provisioning driver at this time. Try using 'ssh' or 'aws' " if unsupportedDriver
+raise ArgumentError, " '#{topo_truck_parms.driver()}' is not a supported Chef provisioning driver at this time. Try using 'ssh' or 'aws' " if unsupportedDriver
 
 
 
