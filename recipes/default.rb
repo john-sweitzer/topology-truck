@@ -16,11 +16,18 @@ stage = node['delivery']['change']['stage']
 raw_data = {}
 raw_data['topology-truck'] = node['delivery']['config']['topology-truck']
 
-Chef::Log.warn('The config.json file has no details for the topology-truck hash so logic is being skipped') if ! raw_data['topology-truck']
+Chef::Log.warn('topology-truck cookbook: The config.json file has no topology-truck hash so logic is being skipped') if ! raw_data['topology-truck']
 return if ! raw_data['topology-truck']
 
 
 topo_truck_parms = Topo::ConfigurationParameter.new(raw_data.to_hash,stage) if raw_data['topology-truck']
+
+Chef::Log.warn("raw_data....                    #{raw_data}")
+Chef::Log.warn("driver....                      #{topo_truck_parms.driver()}")
+Chef::Log.warn("driver_type....                 #{topo_truck_parms.driver_type()}")
+Chef::Log.warn("machine_options_template        #{topo_truck_parms.machine_options()}")
+Chef::Log.warn("machine_options_pipeline        #{topo_truck_parms.pipeline_machine_options()}")
+Chef::Log.warn("topologies....                  #{topo_truck_parms.topologyList()}")
 
 # Let make sure the driver specified in the config.json file is something we support...
 unsupportedDriver = topo_truck_parms.driver() != 'aws' && topo_truck_parms.driver() != 'ssh'
