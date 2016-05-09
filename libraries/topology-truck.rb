@@ -50,22 +50,25 @@ class Topo
      
         @raw_data = raw_data['topology-truck'] || {}
      
-        if @raw_data.provision
-            @driver = @raw_data['provision']['driver'] || ''
+     # Do we have pipeline details....
+        if @raw_data.pipeline
+            @driver = @raw_data['pipeline']['driver'] || ''
             if @driver
                 @driver_type = driver.split(":",2)[0]
             else
                 @driver_type = "default"
             end
             # Machine options in the ./delivery/config.json are options for the pipeline
-            @pipeline_machine_options = @raw_data['provision']['machine_options'] || {}
+            @pipeline_machine_options = @raw_data['pipeline']['machine_options'] || {}
         else
             Chef::Log.warn("Unable to find configuration details for topology-truck so cannot deploy topologies")
         end
       
-      if @raw_data['stage_topology']
-          stage_topology = @raw_data['stage_topology'] || {}
-          @topologies = stage_topology[stage] || []
+      
+      # Do we have stages detail...
+      if @raw_data['stages']
+          stage_details = @raw_data['stage'][stage] || {}    # details for the active stage?
+          @topologies = stage_details['topologies'] || []
       end
 
       ############### Temporary code until we decide how to prime intitial value
