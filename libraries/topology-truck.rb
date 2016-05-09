@@ -67,8 +67,11 @@ class Topo
       
       # Do we have stages detail...
       if @raw_data['stages']
-          stage_details = @raw_data['stages'][stage] || {}    # details for the active stage?
-          @stage_topologies = stage_details['topologies'] || []
+          stage_details = @raw_data['stages'] || {} 
+          @acceptance_topologies    = stage_details['acceptance']['topologies'] || [] if stages_details['acceptance']
+          @union_topologies         = stage_details['union']['topologies'] || [] if stages_details['union']
+          @rehersal_topologies      = stage_details['rehersal']['topologies'] || [] if stages_details['rehearsal']
+          @delivered_topologies     = stage_details['delivered']['topologies'] || [] if stages_details['delivered']
       end
 
 
@@ -188,7 +191,7 @@ class Topo
     end
 
     def topologyListForStage(stage)
-        return @stage_topologies if @stage_topologies
+        return @acceptance_topologies if stage == 'acceptance'
         []
     end
 
