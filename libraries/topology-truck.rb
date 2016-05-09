@@ -197,6 +197,9 @@ class Topo
 
     def topologyListForStage(stage)
         return @acceptance_topologies if stage == 'acceptance'
+        return @union_topologies if stage == 'union'
+        return @rehearsal_topologies if stage == 'rehearsal'
+        return @delivered_topologies if stage == 'delivered'
         []
     end
 
