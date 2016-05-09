@@ -28,6 +28,8 @@ Chef::Log.warn("driver_type....                 #{topo_truck_parms.driver_type()
 Chef::Log.warn("machine_options_template        #{topo_truck_parms.machine_options()}")
 Chef::Log.warn("machine_options_pipeline        #{topo_truck_parms.pipeline_machine_options()}")
 Chef::Log.warn("topologies....                  #{topo_truck_parms.topologyList()}")
+Chef::Log.warn("topologies (stages)....         #{topo_truck_parms.topologyListForStage(stage)}")
+Chef::Log.warn("topologies (pipeline)....       #{topo_truck_parms.topologyListForPipeline()}")
 
 # Let make sure the driver specified in the config.json file is something we support...
 unsupportedDriver = topo_truck_parms.driver() != 'aws' && topo_truck_parms.driver() != 'ssh'

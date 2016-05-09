@@ -68,8 +68,16 @@ class Topo
       # Do we have stages detail...
       if @raw_data['stages']
           stage_details = @raw_data['stages'][stage] || {}    # details for the active stage?
-          @topologies = stage_details['topologies'] || []
+          @stage_topologies[stage] = stage_details['topologies'] || []
       end
+
+
+     # Do we have topologies detail...
+    if @raw_data['topologies']
+        
+        
+    end
+
 
       ############### Temporary code until we decide how to prime intitial value
       @ssh_user = 'vagrant'
@@ -112,11 +120,11 @@ class Topo
           image_id:               @image_id,
           use_private_ip_for_ssh: @use_private_ip_for_ssh
 
-        } if driver_type = 'aws'
+        } if driver_type == 'aws'
 
         # Add any optional machine options
-        require 'chef/mixin/deep_merge' if driver_type = 'aws'
-        opts = Chef::Mixin::DeepMerge.hash_only_merge(opts, bootstrap_options: { subnet_id: @subnet_id }) if @subnet_id && driver_type = 'aws'
+        require 'chef/mixin/deep_merge' if driver_type == 'aws'
+        opts = Chef::Mixin::DeepMerge.hash_only_merge(opts, bootstrap_options: { subnet_id: @subnet_id }) if @subnet_id && driver_type == 'aws'
 
 
         master_template = 
@@ -140,7 +148,7 @@ class Topo
           },
           use_private_ip_for_ssh: @use_private_ip_for_ssh
 
-        } if driver_type = 'vagrant'
+        } if driver_type == 'vagrant'
 
 
        master_template = 
@@ -163,7 +171,7 @@ class Topo
             }
           }
 
-              } if driver_type = 'ssh'
+              } if driver_type == 'ssh'
 
 
         master_template
@@ -179,6 +187,15 @@ class Topo
             []
     end
 
-    
+    def topologyListForStage(stage)
+        return @stage_topologies[stage] if @stage_topologies[stage]
+        []
+    end
+
+    def topologyListForPipeline
+        return @pipeline_topologies if @pipeline_topologies
+        []
+    end
+
   end
 end
