@@ -16,13 +16,14 @@ stage = node['delivery']['change']['stage']
 raw_data = {}
 raw_data['topology-truck'] = node['delivery']['config']['topology-truck']
 
+Chef::Log.warn('The config.json file has no details for the topology-truck hash so logic is being skipped') if ! raw_data['topology-truck']
+return if ! raw_data['topology-truck']
+
+
 topo_truck_parms = Topo::ConfigurationParameter.new(raw_data.to_hash,stage) if raw_data['topology-truck']
 
-Chef::Log.warn("driver:                      #{topo_truck_parms.driver()}")
-
+# Let make sure the driver specified in the config.json file is something we support...
 unsupportedDriver = topo_truck_parms.driver() != 'aws' && topo_truck_parms.driver() != 'ssh'
-
-Chef::Log.warn("unsupporteddriver:                      #{unsupportedDriver}")
 raise ArgumentError, " '#{topo_truck_parms.driver()}' is not a supported Chef provisioning driver at this time. Try using 'ssh' or 'aws' " if unsupportedDriver
 
 
