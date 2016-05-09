@@ -20,7 +20,7 @@ require_relative './node'
 class Topo
   # Handle config.json for topology-truck
   class ConfigurationParameter
-    @stage_topologies = []
+      @stage_topologies = {}
 
 
     # class method to get or create Topo instance
@@ -68,7 +68,7 @@ class Topo
       # Do we have stages detail...
       if @raw_data['stages']
           stage_details = @raw_data['stages'][stage] || {}    # details for the active stage?
-          @stage_topologies[stage] = [] #stage_details['topologies'] || []
+          @stage_topologies = stage_details['topologies'] || []
       end
 
 
@@ -188,7 +188,7 @@ class Topo
     end
 
     def topologyListForStage(stage)
-        return @stage_topologies[stage] if @stage_topologies[stage]
+        return @stage_topologies if @stage_topologies
         []
     end
 
