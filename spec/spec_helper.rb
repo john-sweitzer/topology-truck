@@ -11,7 +11,8 @@ $LOAD_PATH << File.expand_path(File.dirname(__FILE__))
 Dir['libraries/*.rb'].each { |f| require File.expand_path(f) }
 
 # Declare common let declarations
-module GlobalLetSymbols extend RSpec::SharedContext
+module GlobalLetSymbols
+  extend RSpec::SharedContext
   let(:one_changed_cookbook) do
     [
       double(
