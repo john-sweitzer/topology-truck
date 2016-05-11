@@ -24,9 +24,6 @@ return unless raw_data['topology-truck']
 
 topo_truck_parms = Topo::ConfigParms.new(raw_data.to_hash, stage) if raw_data['topology-truck']
 
-Chef::Log.warn("driver:                #{topo_truck_parms.driver}")
-Chef::Log.warn("topologies (stages)....#{topo_truck_parms.topology_list_for_stage(stage)}")
-
 # Decrypt the SSH private key Chef provisioning uses to connect to the
 # machine and save the key to disk when the driver is aws
 ssh_key = {}
