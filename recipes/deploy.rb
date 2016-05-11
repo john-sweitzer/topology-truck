@@ -74,7 +74,7 @@ with_server_config do
   Chef::Log.info("Doing stuff like topo truck getting data bags from chef server #{delivery_chef_server[:chef_server_url]}")
 
   # Retrieve the topology details from data bags in the Chef server...
-  tp_truck_parms.topology_list(stage).each do |topology_name|
+  tp_truck_parms.topology_list_for_stage(stage).each do |topology_name|
     Chef::Log.warn("*** TOPOLOGY NAME......#{topology_name} ")
 
     topology = Topo::Topology.get_topo(topology_name)
@@ -102,7 +102,7 @@ debug_config = "log_level :info \n"\
   'verify_api_cert false'
 
 # Now we are ready to provision the nodes in each of the topologies
-topology_list.each do |topology|
+topology_list_for_stage(stage).each do |topology|
   topology_name = topology.name
 
   # When there are provisioning details in the topology data bag, extract them

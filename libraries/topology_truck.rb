@@ -199,11 +199,6 @@ class Topo
       {}
     end
 
-    def topology_list(stage)
-      return [] if stage # topo: stubbed logic
-      []
-    end
-
     def topology_list_for_stage(stage)
       return @acceptance_topologies if stage == 'acceptance'
       return @union_topologies if stage == 'union'
