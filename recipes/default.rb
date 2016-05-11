@@ -32,7 +32,7 @@ Chef::Log.warn(
 Chef::Log.warn(
   "machine_options_template #{topo_truck_parms.machine_options}")
 Chef::Log.warn(
-  "machine_options_pipeline #{topo_truck_parms.pipeline_machine_options}")
+  "machine_options_pipeline #{topo_truck_parms.pipeline_mach_opts}")
 Chef::Log.warn(
   "topologies (stages)....  #{topo_truck_parms.topology_list_for_stage(stage)}")
 Chef::Log.warn(
