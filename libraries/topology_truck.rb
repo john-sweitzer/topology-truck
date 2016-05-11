@@ -62,8 +62,7 @@ class Topo
         @driver = @raw_data['pipeline']['driver'] || ''
         @driver_type = driver.split(':', 2)[0] if @driver
         @pipeline_mach_opts = @raw_data['pipeline']['machine_options'] || {}
-      else
-        Chef::Log.warn('topology-truck cb: No PIPELINE{} details specified.')
+      else Chef::Log.warn('topology-truck cb: No PIPELINE{} details specified.')
       end
     end
 
@@ -72,20 +71,20 @@ class Topo
     #
     def capture_stage_details
       if @raw_data['stages']
-        @acceptance_topologies  = extract_topology('acceptance')
-        @union_topologies       = extract_topology('union')
-        @rehearsal_topologies   = extract_topology('rehearsal')
-        @delivered_topologies   = extract_topology('delivered')
+        clause = @raw_data['stages']
+        @acceptance_topologies  = extract_topology(clause, 'acceptance')
+        @union_topologies       = extract_topology(clause, 'union')
+        @rehearsal_topologies   = extract_topology(clause, 'rehearsal')
+        @delivered_topologies   = extract_topology(clause, 'delivered')
         @pipeline_topologies    = @acceptance_topologies + @union_topologies +
                                   @rehearsal_topologies + @delivered_topologies
-      else
-        Chef::Log.warn('topology-truck cb: No STAGE{} details specified.')
+      else Chef::Log.warn('topology-truck cb: No STAGE{} details specified.')
       end
     end
 
-    def extract_topology(stage)
-      return [] unless @raw_data['stages']
-      stage_details[stage]['topologies'] || []
+    def extract_topology(clause, stage)
+      return [] unless clause
+      clause[stage]['topologies'] || []
     end
 
     #
@@ -95,8 +94,7 @@ class Topo
       # Do we have topologies detail...
       if @raw_data['topologies']
         #
-      else
-        Chef::Log.warn('topology-truck cb: No TOPOLOGY{} details specified.')
+      else Chef::Log.warn('topology-truck cb: No TOPOLOGY{} details specified.')
       end
     end
 
