@@ -1,4 +1,4 @@
- #
+#
 # Cookbook Name:: topology-truck
 # Recipe:: _aws_creds
 #

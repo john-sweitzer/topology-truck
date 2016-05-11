@@ -4,7 +4,7 @@
 #
 # Copyright:: Copyright (c) 2016 ThirdWave Insights, LLC
 # License:: Apache License, Version 2.0
-
+# rubocop:disable LineLength
 # Use these local variable in the rest of the recipe to make the code cleaner...
 stage = node['delivery']['change']['stage']
 
@@ -13,7 +13,7 @@ stage = node['delivery']['change']['stage']
 raw_data = {}
 raw_data['topology-truck'] = node['delivery']['config']['topology-truck']
 
-config = Topo::ConfigurationParameter.new(raw_data.to_hash,stage) if raw_data['topology-truck']
+config = Topo::ConfigParms.new(raw_data.to_hash, stage) if raw_data['topology-truck']
 
 deliver_using_ssh = config.driver_type == 'ssh' if config
 
