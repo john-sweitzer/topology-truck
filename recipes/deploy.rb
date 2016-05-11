@@ -112,14 +112,14 @@ topology_list.each do |topology|
   #    stage_aws_mach_opts['transport_options'] = mach_opts['transport_options']
   #    Chef::Log.warn("*** MACHINE OPTIONS.............    #{mach_opts.inspect}")
   # end
-
+  nodes = []
   # Provision each node in the current topology...
   topology.nodes.each do |node_details|
     Chef::Log.warn(
       '*** TOPOLOGY NODE(S)...   ' \
       " #{topology_name} NODE:  #{node_details.name}"
     )
-
+    nodes << nodes_details.name
     # hack...to overcome this message....
     # Cannot move 'buildserver-buildserver-master' from ssh:/var/opt/delivery/workspace/33.33.33.11/ourcompany/
     #  systemoneteam/mvt/master/acceptance/provision/chef/provisioning/ssh to ssh:/var/opt/delivery/workspace/
@@ -155,6 +155,8 @@ topology_list.each do |topology|
     end
   end
 end
+Chef::Log.warn('These are the Chef nodes that were deployed...')
+Chef::Log.warn(nodes.to_s)
 
 ruby_block 'do stuff like delivery truck' do
   block do
