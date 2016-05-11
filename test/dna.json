@@ -1,0 +1,33 @@
+{
+	"delivery":{
+		"config":{
+			"topology-truck":{
+				"pipeline":{
+					"driver":"ssh"
+				},
+				"stages":{
+					"acceptance":{
+						"topologies":[
+							"singlenode_default"
+						]
+					},
+					"delivered":{
+						"topologies":[
+							
+						]
+					},
+					"rehearsal":{
+						"topologies":[
+							
+						]
+					},
+					"union":{
+						"topologies":[
+							
+						]
+					}
+				}
+			}
+		}
+	}
+}

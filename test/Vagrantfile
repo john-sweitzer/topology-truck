@@ -1,0 +1,27 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure('2') do |config|
+  # setup cachier config if present
+  if Vagrant.has_plugin?('vagrant-cachier')
+    config.cache.auto_detect = true
+    config.cache.scope = :machine
+  end
+
+  config.vm.define 'redlorry' do |node_config|
+    node_config.vm.network :private_network, ip: '10.0.1.2'
+    node_config.vm.hostname = 'redlorry'
+  end
+
+  config.vm.provider :virtualbox do |vb|
+    vb.memory = 1024
+  end
+
+  # Setup the generic config across both servers
+  config.vm.box = 'opscode-ubuntu-14.04'
+
+  # The url from where the 'config.vm.box' box will be fetched if it
+  # doesn't already exist on the user's system.
+  config.vm.box_url = 'https://opscode-vm-bento.s3.amazonaws.com/vagrant/' \
+    'virtualbox/opscode_ubuntu-14.04_chef-provisionerless.box'
+end

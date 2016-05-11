@@ -50,7 +50,6 @@ a.out
 spec/*
 spec/fixtures/*
 test/*
-test
 features/*
 Guardfile
 Procfile
@@ -74,6 +73,7 @@ Procfile
 #############
 Berksfile
 Berksfile.lock
+cookbooks/*
 cookbooks
 tmp
 
