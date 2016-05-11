@@ -115,11 +115,8 @@ topology_list.each do |topology|
   nodes = []
   # Provision each node in the current topology...
   topology.nodes.each do |node_details|
-    Chef::Log.warn(
-      '*** TOPOLOGY NODE(S)...   ' \
-      " #{topology_name} NODE:  #{node_details.name}"
-    )
     nodes << node_details.name
+    
     # hack...to overcome this message....
     # Cannot move 'buildserver-buildserver-master' from ssh:/var/opt/delivery/workspace/33.33.33.11/ourcompany/
     #  systemoneteam/mvt/master/acceptance/provision/chef/provisioning/ssh to ssh:/var/opt/delivery/workspace/
@@ -154,7 +151,7 @@ topology_list.each do |topology|
       )
     end
   end
-  Chef::Log.warn("These Chef nodes are being deploy for this #{topology_name} topology...")
+  Chef::Log.warn("These Chef nodes are being deployed for the #{topology_name} topology...")
   Chef::Log.warn(nodes.to_s)
 end
 

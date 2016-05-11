@@ -148,7 +148,7 @@ topology_list.each do |topology|
       } if topo_truck_parms.driver_type == 'aws'
     end
   end
-  Chef::Log.warn("These Chef nodes are being deploy for this #{topology_name} topology...")
+  Chef::Log.warn("These Chef nodes are being provisioned for the #{topology_name} topology...")
   Chef::Log.warn(nodes.to_s)
 end
 
