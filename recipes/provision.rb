@@ -109,6 +109,7 @@ debug_config = "log_level :info \n"\
 
 # Now we are ready to provision the nodes in each of the topologies
 topology_list.each do |topology|
+  topology_name = topology.name
   # When there are provisioning details in the topology data bag, extract them
   # and load the values into a structure with symbols rather than string hashes
   #     if topology['provisioning'] && topology['provisioning']['ssh']
@@ -125,7 +126,8 @@ topology_list.each do |topology|
     #  systemoneteam/mvt/master/acceptance/provision/chef/provisioning/ssh to ssh:/var/opt/delivery/workspace/
     #  33.33.33.11/ourcompany/systemoneteam/mvt/master/acceptance/deploy/chef/provisioning/ssh: machine moving
     #  is not supported.  Destroy and recreate.
-
+    nodes << node_details.name
+    
     chef_node node_details.name do
       attribute 'chef_provisioning', {}
       only_if { topo_truck_parms.driver_type == 'ssh' }
