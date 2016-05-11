@@ -119,7 +119,7 @@ topology_list.each do |topology|
       '*** TOPOLOGY NODE(S)...   ' \
       " #{topology_name} NODE:  #{node_details.name}"
     )
-    nodes << nodes_details.name
+    nodes << node_details.name
     # hack...to overcome this message....
     # Cannot move 'buildserver-buildserver-master' from ssh:/var/opt/delivery/workspace/33.33.33.11/ourcompany/
     #  systemoneteam/mvt/master/acceptance/provision/chef/provisioning/ssh to ssh:/var/opt/delivery/workspace/
