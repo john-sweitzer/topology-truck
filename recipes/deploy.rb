@@ -102,7 +102,7 @@ debug_config = "log_level :info \n"\
   'verify_api_cert false'
 
 # Now we are ready to provision the nodes in each of the topologies
-topology_list_for_stage(stage).each do |topology|
+topology_list.each do |topology|
   topology_name = topology.name
 
   # When there are provisioning details in the topology data bag, extract them

@@ -108,7 +108,7 @@ debug_config = "log_level :info \n"\
 # driver_stage_machine_opts = node[project][stage][topo_truck_parms.driver_type]['config']['machine_options']
 
 # Now we are ready to provision the nodes in each of the topologies
-topology_list_for_stage(stage).each do |topology|
+topology_list.each do |topology|
   topology_name = topology.name
 
   # When there are provisioning details in the topology data bag, extract them
