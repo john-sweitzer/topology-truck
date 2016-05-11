@@ -83,6 +83,7 @@ unsupported_driver = tp_truck_parms.pl_driver != 'aws' &&
 
 raise ArgumentError, " '#{tp_truck_parms.pl_driver}' is not a supported Chef provisioning driver at this time. Try using 'ssh' or 'aws' " if unsupported_driver
 
+include_recipe 'topology-truck::_default_build'
 include_recipe 'topology-truck::_default_acceptance'
 include_recipe 'topology-truck::_default_union'
 include_recipe 'topology-truck::_default_rehearsal'

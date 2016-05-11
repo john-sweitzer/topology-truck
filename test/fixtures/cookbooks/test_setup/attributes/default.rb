@@ -18,8 +18,8 @@ normal['delivery']['change']['stage'] = ENV['STAGE'] || 'acceptance'
 normal['delivery']['change']['phase'] = ENV['PHASE'] || 'provision'
 normal['delivery']['change']['git_url'] =
   'ssh://builder@test@myserver:8989/test/test/lorries'
-normal['delivery']['change']['sha'] = '561b05a309c0a791445a37d105106b4c5ff652ba'
-normal['delivery']['change']['patchset_branch'] = ''
+normal['delivery']['change']['sha'] = 'HEAD'
+normal['delivery']['change']['patchset_branch'] = 'test'
 normal['delivery']['config']['version'] = '2'
 normal['delivery_builder']['workspace'] = test_dir
 normal['delivery_builder']['build_user'] = ENV['USER']

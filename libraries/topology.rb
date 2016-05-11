@@ -36,13 +36,18 @@ class Topo
     end
 
     def self.load_from_bag(name, item, data_bag)
-      begin
-        raw_data = Chef::DataBagItem.load(data_bag, item)
-        raw_data['name'] = item if raw_data # Restore name attribute - chef bug
-        topo = Topo::Topology.new(name, raw_data.to_hash) if raw_data
-      rescue Net::HTTPServerException => e
-        raise unless e.to_s =~ /^404/
-      end
+      raw_data = Chef::DataBagItem.load(data_bag, item)
+      raw_data['name'] = item if raw_data # Restore name attribute - chef bug
+      Topo::Topology.new(name, raw_data.to_hash) if raw_data
+    rescue Net::HTTPServerException => e
+      raise unless e.to_s =~ /^404/
+      nil
+    end
+
+    def self.load_from_file(filename)
+      return unless File.exist?(filename)
+      hash = Chef::JSONCompat.from_json(File.read(filename))
+      topo = Topo::Topology.new(hash['name'], hash)
       topo
     end
 
