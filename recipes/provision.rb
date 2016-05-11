@@ -127,7 +127,7 @@ topology_list.each do |topology|
     #  33.33.33.11/ourcompany/systemoneteam/mvt/master/acceptance/deploy/chef/provisioning/ssh: machine moving
     #  is not supported.  Destroy and recreate.
     nodes << node_details.name
-    
+
     chef_node node_details.name do
       attribute 'chef_provisioning', {}
       only_if { topo_truck_parms.driver_type == 'ssh' }
