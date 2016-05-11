@@ -1,0 +1,21 @@
+source 'https://supermarket.chef.io'
+
+cookbook 'topology-truck', path: '..'
+
+cookbook 'delivery_build', git: 'https://github.com/chef-cookbooks/delivery_build'
+cookbook 'delivery-base', git: 'https://github.com/chef-cookbooks/delivery-base'
+cookbook(
+  'delivery-sugar',
+  # This branch allows workspace path to be configured
+  git: 'https://github.com/christinedraper/delivery-sugar',
+  branch: 'kniferb'
+)
+cookbook 'delivery-truck', git: 'https://github.com/chef-cookbooks/delivery-truck'
+
+# Exclude this group when publishing
+# berks -e integration install
+group :integration do
+  %w(redlorry yellowlorry test_setup).each do |cb|
+    cookbook cb, path: "./fixtures/cookbooks/#{cb}"
+  end
+end

@@ -1,0 +1,6 @@
+.chef/local-mode-cache/
+.chef/provisioning/
+/cookbooks/
+nodes/
+clients/
+.vagrant
