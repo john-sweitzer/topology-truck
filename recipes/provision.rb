@@ -75,7 +75,7 @@ with_server_config do
 
   # Retrieve the topology details from data bags in the Chef server...
   topo_truck_parms.topology_list_for_stage(stage).each do |topology_name|
-    Chef::Log.warn("This #{topology_name} topology.json was fetched from the Chef server. ")
+    Chef::Log.warn("#{topology_name} topology.json was fetched from the Chef server. ")
     topology = Topo::Topology.get_topo(topology_name)
 
     if topology
