@@ -109,8 +109,6 @@ debug_config = "log_level :info \n"\
 
 # Now we are ready to provision the nodes in each of the topologies
 topology_list.each do |topology|
-  topology_name = topology.name
-
   # When there are provisioning details in the topology data bag, extract them
   # and load the values into a structure with symbols rather than string hashes
   #     if topology['provisioning'] && topology['provisioning']['ssh']
@@ -119,14 +117,10 @@ topology_list.each do |topology|
   #    Chef::Log.warn("*** MACHINE OPTIONS.............    #{mach_opts.inspect}")
   # end
 
+  Chef::Log.warn('These are the Chef nodes that will be provisioned:')
+  Chef::Log.warn(topology.nodes.to_s)
   # Provision each node in the current topology...
   topology.nodes.each do |node_details|
-    # driver_stage_machine_opts['transport_options']['ip_address']= node_details.ssh_host
-    Chef::Log.warn(
-      '*** TOPOLOGY NODE(S)...   ' \
-      " #{topology_name} NODE:  #{node_details.name}"
-    )
-
     # hack...to overcome this message....
     # Cannot move 'buildserver-buildserver-master' from ssh:/var/opt/delivery/workspace/33.33.33.11/ourcompany/
     #  systemoneteam/mvt/master/acceptance/provision/chef/provisioning/ssh to ssh:/var/opt/delivery/workspace/
