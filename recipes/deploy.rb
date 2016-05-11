@@ -154,9 +154,9 @@ topology_list.each do |topology|
       )
     end
   end
+  Chef::Log.warn("These Chef nodes are being deploy for this #{topology_name} topology...")
+  Chef::Log.warn(nodes.to_s)
 end
-Chef::Log.warn('These are the Chef nodes that were deployed...')
-Chef::Log.warn(nodes.to_s)
 
 ruby_block 'do stuff like delivery truck' do
   block do

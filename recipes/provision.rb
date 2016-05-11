@@ -117,9 +117,8 @@ topology_list.each do |topology|
   #    Chef::Log.warn("*** MACHINE OPTIONS.............    #{mach_opts.inspect}")
   # end
 
-  Chef::Log.warn('These are the Chef nodes that will be provisioned:')
-  Chef::Log.warn(topology.nodes.to_s)
   # Provision each node in the current topology...
+  nodes = []
   topology.nodes.each do |node_details|
     # hack...to overcome this message....
     # Cannot move 'buildserver-buildserver-master' from ssh:/var/opt/delivery/workspace/33.33.33.11/ourcompany/
@@ -147,6 +146,8 @@ topology_list.each do |topology|
       } if topo_truck_parms.driver_type == 'aws'
     end
   end
+  Chef::Log.warn("These Chef nodes are being deploy for this #{topology_name} topology...")
+  Chef::Log.warn(nodes.to_s)
 end
 
 ruby_block 'do stuff like delivery truck' do
