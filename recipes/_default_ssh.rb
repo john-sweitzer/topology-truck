@@ -13,7 +13,7 @@ stage = node['delivery']['change']['stage']
 raw_data = {}
 raw_data['topology-truck'] = node['delivery']['config']['topology-truck']
 
-config = Topo::ConfigParms.new(raw_data.to_hash, stage) if raw_data['topology-truck']
+config = TopologyTruck::ConfigParms.new(raw_data.to_hash, stage) if raw_data['topology-truck']
 
 deliver_using_ssh = config.driver_type == 'ssh' if config
 
