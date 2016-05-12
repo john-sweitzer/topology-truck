@@ -57,10 +57,8 @@ class TopologyTruck
 
     # Extract the pipeline options from the config.json details
     def capture_pipeline_details
-      m = 'topology-truck cb: No PIPELINE{} details specified.'
-      Chef::Log.warn(m) unless @raw_data['pipeline']
       return unless @raw_data['pipeline']
-
+      @pl_level = true
       @pl_driver_type = 'default'
       @pl_driver = @raw_data['pipeline']['driver'] || ''
       @pl_driver_type = @pl_driver.split(':', 2)[0] if @pl_driver
@@ -72,12 +70,11 @@ class TopologyTruck
     #
     def capture_stage_details
       clause = @raw_data['stages']
+      @st_level = true if clause
       @acceptance_topologies  = extract_topology(clause, 'acceptance')
       @union_topologies       = extract_topology(clause, 'union')
       @rehearsal_topologies   = extract_topology(clause, 'rehearsal')
       @delivered_topologies   = extract_topology(clause, 'delivered')
-      m = 'topology-truck cb: No STAGE{} details specified.'
-      Chef::Log.warn(m) unless clause
       @pl_topologies = @acceptance_topologies + @union_topologies +
                        @rehearsal_topologies + @delivered_topologies
     end
@@ -93,20 +90,8 @@ class TopologyTruck
     #
     def capture_topology_details
       # Do we have topologies detail...
-      if @raw_data['topologies']
-        #
-      else Chef::Log.warn('topology-truck cb: No TOPOLOGY{} details specified.')
-      end
-    end
-
-    def pl_driver
-      return @pl_driver if @pl_driver
-      'default'
-    end
-
-    def pl_driver_type
-      return @pl_driver_type if @pl_driver_type
-      'default'
+      clause = @raw_data['topologies']
+      @tp_level = true if clause
     end
 
     # @returns machine option template based on driver type...
@@ -195,9 +180,34 @@ class TopologyTruck
     end
     # rubocop:enable MethodLength
 
+    def pl_level?
+      return @pl_level if @pl_level
+      false
+    end
+
+    def pl_driver
+      return @pl_driver if @pl_driver
+      'default'
+    end
+
+    def pl_driver_type
+      return @pl_driver_type if @pl_driver_type
+      'default'
+    end
+
     def pl_machine_options
       return @pl_machine_options if @pl_machine_options
       {}
+    end
+
+    def pl_topologies
+      return @pl_topologies if @pl_topologies
+      []
+    end
+
+    def st_level?
+      return @st_level if @st_level
+      false
     end
 
     def st_driver(st)
@@ -224,17 +234,49 @@ class TopologyTruck
       { 'none_specified' => true }
     end
 
-    def st_topologies(stage)
-      return @acceptance_topologies if stage == 'acceptance'
-      return @union_topologies if stage == 'union'
-      return @rehearsal_topologies if stage == 'rehearsal'
-      return @delivered_topologies if stage == 'delivered'
-      [{ 'none_specified_for_stage' => stage }]
+    def st_topologies(st)
+      return @acceptance_topologies if st == 'acceptance'
+      return @union_topologies if st == 'union'
+      return @rehearsal_topologies if st == 'rehearsal'
+      return @delivered_topologies if st == 'delivered'
+      [{ 'none_specified_for_stage' => st }]
     end
 
-    def pl_topologies
-      return @pl_topologies if @pl_topologies
-      []
+    def tp_level?
+      return @tp_level if @tp_level
+      false
+    end
+
+    def tp_driver(st)
+      return { 'none_specified' => true } if st == 'acceptance'
+      return { 'none_specified' => true } if st == 'union'
+      return { 'none_specified' => true } if st == 'rehearsal'
+      return { 'none_specified' => true } if st == 'delivered'
+      { 'none_specified' => true }
+    end
+
+    def tp_driver_type(st)
+      return { 'none_specified' => true } if st == 'acceptance'
+      return { 'none_specified' => true } if st == 'union'
+      return { 'none_specified' => true } if st == 'rehearsal'
+      return { 'none_specified' => true } if st == 'delivered'
+      { 'none_specified' => true }
+    end
+
+    def tp_machine_options(st)
+      return { 'none_specified' => true } if st == 'acceptance'
+      return { 'none_specified' => true } if st == 'union'
+      return { 'none_specified' => true } if st == 'rehearsal'
+      return { 'none_specified' => true } if st == 'delivered'
+      { 'none_specified' => true }
+    end
+
+    def tp_topologies(st)
+      return @acceptance_topologies if st == 'acceptance'
+      return @union_topologies if st == 'union'
+      return @rehearsal_topologies if st == 'rehearsal'
+      return @delivered_topologies if st == 'delivered'
+      [{ 'none_specified_for_stage' => st }]
     end
   end
 end

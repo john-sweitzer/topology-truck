@@ -27,22 +27,48 @@ Chef::Log.warn(
   "topology-truck hash.......  #{raw_data}")
 Chef::Log.warn(
   "template.machine_options..  #{topo_truck_parms.machine_options}")
-Chef::Log.warn(
-  "pipline.driver............  #{topo_truck_parms.pl_driver}")
-Chef::Log.warn(
-  "pipeline.driver_type......  #{topo_truck_parms.pl_driver_type}")
-Chef::Log.warn(
-  "pipeline.machine_options..  #{topo_truck_parms.pl_machine_options}")
-Chef::Log.warn(
-  "pipeline.topologies.......  #{topo_truck_parms.pl_topologies}")
-Chef::Log.warn(
-  "stage.driver..............  #{topo_truck_parms.st_driver(stage)}")
-Chef::Log.warn(
-  "stage.driver_type.........  #{topo_truck_parms.st_driver_type(stage)}")
-Chef::Log.warn(
-  "stage.machine_options.....  #{topo_truck_parms.st_machine_options(stage)}")
-Chef::Log.warn(
-  "stage.topologies..........  #{topo_truck_parms.st_topologies(stage)}")
+
+if topo_truck_parms.pl_level?
+  Chef::Log.warn(
+    "pipline.driver............  #{topo_truck_parms.pl_driver}")
+  Chef::Log.warn(
+    "pipeline.driver_type......  #{topo_truck_parms.pl_driver_type}")
+  Chef::Log.warn(
+    "pipeline.machine_options..  #{topo_truck_parms.pl_machine_options}")
+  Chef::Log.warn(
+    "pipeline.topologies.......  #{topo_truck_parms.pl_topologies}")
+else
+  Chef::Log.warn(
+    'No PIPELINE level configuration info was specified.')
+end
+
+if topo_truck_parms.st_level?
+  Chef::Log.warn(
+    "stage.driver..............  #{topo_truck_parms.st_driver(stage)}")
+  Chef::Log.warn(
+    "stage.driver_type.........  #{topo_truck_parms.st_driver_type(stage)}")
+  Chef::Log.warn(
+    "stage.machine_options.....  #{topo_truck_parms.st_machine_options(stage)}")
+  Chef::Log.warn(
+    "stage.topologies..........  #{topo_truck_parms.st_topologies(stage)}")
+else
+  Chef::Log.warn(
+    'No STAGE level configuration info was specified.')
+end
+
+if topo_truck_parms.tp_level?
+  Chef::Log.warn(
+    "topology.driver..............  #{topo_truck_parms.tp_driver(stage)}")
+  Chef::Log.warn(
+    "topology.driver_type.........  #{topo_truck_parms.tp_driver_type(stage)}")
+  Chef::Log.warn(
+    "topology.machine_options.....  #{topo_truck_parms.tp_machine_options(stage)}")
+  Chef::Log.warn(
+    "topology.topologies..........  #{topo_truck_parms.tp_topologies(stage)}")
+else
+  Chef::Log.warn(
+    'No TOPOLOGY level configuration info was specified.')
+end
 
 # Let make sure the driver specified in the config.json file
 #  is something we support...
