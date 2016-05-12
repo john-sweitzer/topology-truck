@@ -15,11 +15,11 @@ describe TopologyTruck::ConfigParms do
   shared_examples_for 'Pipelines --- Stages --- Topologies --- and more ... ' do
     context 'Check all the config.json options...' do
       it 'check for aws driver at pipeline level' do
-        expect(tp_trk_parms.driver).to eql(driver)
+        expect(tp_trk_parms.pl_driver).to eql(driver)
       end
 
       it 'check for driver type at pipeline level' do
-        expect(tp_trk_parms.driver_type).to eql(driver_type)
+        expect(tp_trk_parms.pl_driver_type).to eql(driver_type)
       end
 
       it 'check for machine option template for current driver' do
@@ -27,35 +27,35 @@ describe TopologyTruck::ConfigParms do
       end
 
       it 'check for driver at pipeline level' do
-        expect(tp_trk_parms.pipeline_mach_opts).to eql(pipeline_mach_opts)
+        expect(tp_trk_parms.pl_machine_options).to eql(pl_machine_options)
       end
 
       it 'topology list for verify' do
-        expect(tp_trk_parms.topology_list_for_stage('verify')).to eql([])
+        expect(tp_trk_parms.st_topologies('verify')).to eql([])
       end
 
       it 'topology list for build' do
-        expect(tp_trk_parms.topology_list_for_stage('build')).to eql([])
+        expect(tp_trk_parms.st_topologies('build')).to eql([])
       end
 
       it 'topology list for acceptance' do
-        expect(tp_trk_parms.topology_list_for_stage('acceptance')).to eql(a_tps)
+        expect(tp_trk_parms.st_topologies('acceptance')).to eql(a_tps)
       end
 
       it 'topology list for union' do
-        expect(tp_trk_parms.topology_list_for_stage('union')).to eql(u_tps)
+        expect(tp_trk_parms.st_topologies('union')).to eql(u_tps)
       end
 
       it 'topology list for rehearsal' do
-        expect(tp_trk_parms.topology_list_for_stage('rehearsal')).to eql(r_tps)
+        expect(tp_trk_parms.st_topologies('rehearsal')).to eql(r_tps)
       end
 
       it 'topology list for delivered' do
-        expect(tp_trk_parms.topology_list_for_stage('delivered')).to eql(d_tps)
+        expect(tp_trk_parms.st_topologies('delivered')).to eql(d_tps)
       end
 
       it 'topology list for PIPELINE' do
-        expect(tp_trk_parms.topology_list_for_pipeline).to eql(pl_tps)
+        expect(tp_trk_parms.pl_topologies).to eql(pl_tps)
       end
     end
   end
@@ -68,7 +68,7 @@ describe TopologyTruck::ConfigParms do
     let(:driver) { 'aws' }
     let(:driver_type) { 'aws' }
     let(:template_mach_opts) { aws_machine_template }
-    let(:pipeline_mach_opts) { {} }
+    let(:pl_machine_options) { {} }
     let(:a_tps) { [] }
     let(:u_tps) { [] }
     let(:r_tps) { [] }
@@ -88,7 +88,7 @@ describe TopologyTruck::ConfigParms do
     let(:driver) { 'ssh' }
     let(:driver_type) { 'ssh' }
     let(:template_mach_opts) { ssh_machine_template }
-    let(:pipeline_mach_opts) { {} }
+    let(:pl_machine_options) { {} }
     let(:a_tps) { [] }
     let(:u_tps) { [] }
     let(:r_tps) { [] }
@@ -108,7 +108,7 @@ describe TopologyTruck::ConfigParms do
     let(:driver) { 'aws' }
     let(:driver_type) { 'aws' }
     let(:template_mach_opts) { aws_machine_template }
-    let(:pipeline_mach_opts) { {} }
+    let(:pl_machine_options) { {} }
     let(:a_tps) { [] }
     let(:u_tps) { [] }
     let(:r_tps) { [] }
@@ -138,7 +138,7 @@ describe TopologyTruck::ConfigParms do
     let(:driver) { 'aws' }
     let(:driver_type) { 'aws' }
     let(:template_mach_opts) { aws_machine_template }
-    let(:pipeline_mach_opts) { {} }
+    let(:pl_machine_options) { {} }
     let(:a_tps) { ['a'] }
     let(:u_tps) { ['u'] }
     let(:r_tps) { ['r'] }

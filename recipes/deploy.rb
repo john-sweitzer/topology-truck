@@ -25,9 +25,9 @@ tp_truck_parms = TopologyTruck::ConfigParms.new(raw_data.to_hash, stage) if raw_
 # Decrypt the SSH private key Chef provisioning uses to connect to the
 # machine and save the key to disk when the driver is aws
 ssh_key = {}
-ssh_key = encrypted_data_bag_item_for_environment('provisioning-data', 'ssh_key') if tp_truck_parms.driver_type == 'aws'
+ssh_key = encrypted_data_bag_item_for_environment('provisioning-data', 'ssh_key') if tp_truck_parms.pl_driver_type == 'aws'
 ssh_priv_key_path = File.join(node['delivery']['workspace']['cache'], '.ssh')
-directory ssh_priv_key_path if tp_truck_parms.driver_type == 'aws'
+directory ssh_priv_key_path if tp_truck_parms.pl_driver_type == 'aws'
 file_name = ssh_key['name'] || 'noFileToSetup'
 file File.join(ssh_priv_key_path, "#{file_name}.pem") do
   sensitive true
@@ -35,26 +35,26 @@ file File.join(ssh_priv_key_path, "#{file_name}.pem") do
   owner node['delivery_builder']['build_user']
   group node['delivery_builder']['build_user']
   mode '0600'
-  only_if { tp_truck_parms.driver_type == 'aws' }
+  only_if { tp_truck_parms.pl_driver_type == 'aws' }
 end
 
 # Load AWS credentials.
-include_recipe "#{cookbook_name}::_aws_creds" if tp_truck_parms.driver_type == 'aws'
+include_recipe "#{cookbook_name}::_aws_creds" if tp_truck_parms.pl_driver_type == 'aws'
 
 # Machine options will start with the template for the active driver...
 with_machine_options(tp_truck_parms.machine_options)
 
 # Initialize the provisioning driver after loading it..
-require 'chef/provisioning/ssh_driver' if tp_truck_parms.driver_type == 'ssh'
-require 'chef/provisioning/aws_driver' if tp_truck_parms.driver_type == 'aws'
-require 'chef/provisioning/vagrant_driver' if tp_truck_parms.driver_type == 'vagrant'
+require 'chef/provisioning/ssh_driver' if tp_truck_parms.pl_driver_type == 'ssh'
+require 'chef/provisioning/aws_driver' if tp_truck_parms.pl_driver_type == 'aws'
+require 'chef/provisioning/vagrant_driver' if tp_truck_parms.pl_driver_type == 'vagrant'
 
-with_driver tp_truck_parms.driver
+with_driver tp_truck_parms.pl_driver
 
-if tp_truck_parms.driver_type == 'vagrant'
+if tp_truck_parms.pl_driver_type == 'vagrant'
   vagrant_box 'ubuntu64-12.4' do
     url 'https://opscode-vm-bento.s3.amazonaws.com/vagrant/virtualbox/opscode_ubuntu-14.04_chef-provisionerless.box'
-    only_if { tp_truck_parms.driver_type == 'vagrant' }
+    only_if { tp_truck_parms.pl_driver_type == 'vagrant' }
   end
 end
 
@@ -71,7 +71,7 @@ with_server_config do
   Chef::Log.info("Doing stuff like topo truck getting data bags from chef server #{delivery_chef_server[:chef_server_url]}")
 
   # Retrieve the topology details from data bags in the Chef server...
-  tp_truck_parms.topology_list_for_stage(stage).each do |topology_name|
+  tp_truck_parms.st_topologies(stage).each do |topology_name|
     Chef::Log.warn("#{topology_name} topology.json was fetched from the Chef server. ")
 
     topology = Topo::Topology.get_topo(topology_name)
@@ -122,7 +122,7 @@ topology_list.each do |topology|
 
     chef_node node_details.name do
       attribute 'chef_provisioning', {}
-      only_if { tp_truck_parms.driver_type == 'ssh' }
+      only_if { tp_truck_parms.pl_driver_type == 'ssh' }
     end
 
     # Prepare a new machine / node for a chef client run...

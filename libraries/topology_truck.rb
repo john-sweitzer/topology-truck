@@ -61,10 +61,10 @@ class TopologyTruck
       Chef::Log.warn(m) unless @raw_data['pipeline']
       return unless @raw_data['pipeline']
 
-      @driver_type = 'default'
-      @driver = @raw_data['pipeline']['driver'] || ''
-      @driver_type = driver.split(':', 2)[0] if @driver
-      @pipeline_mach_opts = @raw_data['pipeline']['machine_options'] || {}
+      @pl_driver_type = 'default'
+      @pl_driver = @raw_data['pipeline']['driver'] || ''
+      @pl_driver_type = @pl_driver.split(':', 2)[0] if @pl_driver
+      @pl_machine_options = @raw_data['pipeline']['machine_options'] || {}
     end
 
     #
@@ -78,8 +78,8 @@ class TopologyTruck
       @delivered_topologies   = extract_topology(clause, 'delivered')
       m = 'topology-truck cb: No STAGE{} details specified.'
       Chef::Log.warn(m) unless clause
-      @pipeline_topologies = @acceptance_topologies + @union_topologies +
-                             @rehearsal_topologies + @delivered_topologies
+      @pl_topologies = @acceptance_topologies + @union_topologies +
+                       @rehearsal_topologies + @delivered_topologies
     end
 
     def extract_topology(clause, stage)
@@ -99,13 +99,13 @@ class TopologyTruck
       end
     end
 
-    def driver
-      return @driver if @driver
+    def pl_driver
+      return @pl_driver if @pl_driver
       'default'
     end
 
-    def driver_type
-      return @driver_type if @driver_type
+    def pl_driver_type
+      return @pl_driver_type if @pl_driver_type
       'default'
     end
 
@@ -113,9 +113,9 @@ class TopologyTruck
     # Templates are derived from patterns in Chef's Delivery-Cluster cookbook...
     def machine_options
       master_template = {}
-      master_template = aws_template if driver_type == 'aws'
-      master_template = vagrant_template if driver_type == 'vagrant'
-      master_template = ssh_template if driver_type == 'ssh'
+      master_template = aws_template if pl_driver_type == 'aws'
+      master_template = vagrant_template if pl_driver_type == 'vagrant'
+      master_template = ssh_template if pl_driver_type == 'ssh'
       master_template
     end
 
@@ -195,12 +195,12 @@ class TopologyTruck
     end
     # rubocop:enable MethodLength
 
-    def pipeline_mach_opts
-      return @pipeline_mach_opts if @pipeline_mach_opts
+    def pl_machine_options
+      return @pl_machine_options if @pl_machine_options
       {}
     end
 
-    def topology_list_for_stage(stage)
+    def st_topologies(stage)
       return @acceptance_topologies if stage == 'acceptance'
       return @union_topologies if stage == 'union'
       return @rehearsal_topologies if stage == 'rehearsal'
@@ -208,8 +208,8 @@ class TopologyTruck
       []
     end
 
-    def topology_list_for_pipeline
-      return @pipeline_topologies if @pipeline_topologies
+    def pl_topologies
+      return @pl_topologies if @pl_topologies
       []
     end
   end

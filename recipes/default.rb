@@ -24,26 +24,26 @@ topo_truck_parms = TopologyTruck::ConfigParms.new(
 ) if raw_data['topology-truck']
 
 Chef::Log.warn(
-  "raw_data....             #{raw_data}")
+  "raw_data....                #{raw_data}")
 Chef::Log.warn(
-  "driver....               #{topo_truck_parms.driver}")
+  "pipline.driver..........    #{topo_truck_parms.pl_driver}")
 Chef::Log.warn(
-  "driver_type....          #{topo_truck_parms.driver_type}")
+  "pipeline.driver_type....    #{topo_truck_parms.pl_driver_type}")
 Chef::Log.warn(
-  "machine_options_template #{topo_truck_parms.machine_options}")
+  "machine_options_template    #{topo_truck_parms.machine_options}")
 Chef::Log.warn(
-  "machine_options_pipeline #{topo_truck_parms.pipeline_mach_opts}")
+  "pipeline.machine_options... #{topo_truck_parms.pl_machine_options}")
 Chef::Log.warn(
-  "topologies (stages)....  #{topo_truck_parms.topology_list_for_stage(stage)}")
+  "stage.topologies......      #{topo_truck_parms.st_topologies(stage)}")
 Chef::Log.warn(
-  "topologies (pipeline)... #{topo_truck_parms.topology_list_for_pipeline}")
+  "pipeline.topologies...      #{topo_truck_parms.pl_topologies}")
 
 # Let make sure the driver specified in the config.json file
 #  is something we support...
-unsupported_driver = topo_truck_parms.driver != 'aws' &&
-                     topo_truck_parms.driver != 'ssh'
+unsupported_driver = topo_truck_parms.pl_driver != 'aws' &&
+                     topo_truck_parms.pl_driver != 'ssh'
 
-raise ArgumentError, " '#{topo_truck_parms.driver}' is not a supported Chef provisioning driver at this time. Try using 'ssh' or 'aws' " if unsupported_driver
+raise ArgumentError, " '#{topo_truck_parms.pl_driver}' is not a supported Chef provisioning driver at this time. Try using 'ssh' or 'aws' " if unsupported_driver
 
 include_recipe 'topology-truck::_default_acceptance'
 include_recipe 'topology-truck::_default_union'
