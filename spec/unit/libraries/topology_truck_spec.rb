@@ -31,11 +31,15 @@ describe TopologyTruck::ConfigParms do
       end
 
       it 'topology list for verify' do
-        expect(tp_trk_parms.st_topologies('verify')).to eql([])
+        # rubocop:disable LineLength
+        expect(tp_trk_parms.st_topologies('verify')).to eql([{ 'none_specified_for_stage' => 'verify' }])
+        # rubocop:enable LineLength
       end
 
       it 'topology list for build' do
-        expect(tp_trk_parms.st_topologies('build')).to eql([])
+        # rubocop:disable LineLength
+        expect(tp_trk_parms.st_topologies('build')).to eql([{ 'none_specified_for_stage' => 'build' }])
+        # rubocop:enable LineLength
       end
 
       it 'topology list for acceptance' do

@@ -200,12 +200,36 @@ class TopologyTruck
       {}
     end
 
+    def st_driver(st)
+      return { 'none_specified' => true } if st == 'acceptance'
+      return { 'none_specified' => true } if st == 'union'
+      return { 'none_specified' => true } if st == 'rehearsal'
+      return { 'none_specified' => true } if st == 'delivered'
+      { 'none_specified' => true }
+    end
+
+    def st_driver_type(st)
+      return { 'none_specified' => true } if st == 'acceptance'
+      return { 'none_specified' => true } if st == 'union'
+      return { 'none_specified' => true } if st == 'rehearsal'
+      return { 'none_specified' => true } if st == 'delivered'
+      { 'none_specified' => true }
+    end
+
+    def st_machine_options(st)
+      return { 'none_specified' => true } if st == 'acceptance'
+      return { 'none_specified' => true } if st == 'union'
+      return { 'none_specified' => true } if st == 'rehearsal'
+      return { 'none_specified' => true } if st == 'delivered'
+      { 'none_specified' => true }
+    end
+
     def st_topologies(stage)
       return @acceptance_topologies if stage == 'acceptance'
       return @union_topologies if stage == 'union'
       return @rehearsal_topologies if stage == 'rehearsal'
       return @delivered_topologies if stage == 'delivered'
-      []
+      [{ 'none_specified_for_stage' => stage }]
     end
 
     def pl_topologies

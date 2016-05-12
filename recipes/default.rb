@@ -24,19 +24,25 @@ topo_truck_parms = TopologyTruck::ConfigParms.new(
 ) if raw_data['topology-truck']
 
 Chef::Log.warn(
-  "raw_data....                #{raw_data}")
+  "topology-truck hash.......  #{raw_data}")
 Chef::Log.warn(
-  "pipline.driver..........    #{topo_truck_parms.pl_driver}")
+  "template.machine_options..  #{topo_truck_parms.machine_options}")
 Chef::Log.warn(
-  "pipeline.driver_type....    #{topo_truck_parms.pl_driver_type}")
+  "pipline.driver............  #{topo_truck_parms.pl_driver}")
 Chef::Log.warn(
-  "machine_options_template    #{topo_truck_parms.machine_options}")
+  "pipeline.driver_type......  #{topo_truck_parms.pl_driver_type}")
 Chef::Log.warn(
-  "pipeline.machine_options... #{topo_truck_parms.pl_machine_options}")
+  "pipeline.machine_options..  #{topo_truck_parms.pl_machine_options}")
 Chef::Log.warn(
-  "stage.topologies......      #{topo_truck_parms.st_topologies(stage)}")
+  "pipeline.topologies.......  #{topo_truck_parms.pl_topologies}")
 Chef::Log.warn(
-  "pipeline.topologies...      #{topo_truck_parms.pl_topologies}")
+  "stage.driver..............  #{topo_truck_parms.st_driver(stage)}")
+Chef::Log.warn(
+  "stage.driver_type.........  #{topo_truck_parms.st_driver_type(stage)}")
+Chef::Log.warn(
+  "stage.machine_options.....  #{topo_truck_parms.st_machine_options(stage)}")
+Chef::Log.warn(
+  "stage.topologies..........  #{topo_truck_parms.st_topologies(stage)}")
 
 # Let make sure the driver specified in the config.json file
 #  is something we support...
