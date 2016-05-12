@@ -19,7 +19,7 @@ Chef::Log.warn(
 
 return unless raw_data['topology-truck']
 
-topo_truck_parms = Topo::ConfigParms.new(
+topo_truck_parms = TopologyTruck::ConfigParms.new(
   raw_data.to_hash, stage
 ) if raw_data['topology-truck']
 

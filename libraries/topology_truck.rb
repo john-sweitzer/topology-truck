@@ -19,7 +19,7 @@ require 'chef/data_bag_item'
 require_relative './node'
 
 # rubocop:disable ClassLength
-class Topo
+class TopologyTruck
   # Handle config.json for topology-truck
   class ConfigParms
     @stage_topologies = {}
@@ -45,11 +45,11 @@ class Topo
     end
 
     def initialize(raw_data, _stage = 'acceptance')
-      @raw_data = raw_data['topology-truck'] || {}
+      @raw_data = raw_data['topology-truck'] || raw_data['topology_truck'] || {}
       capture_pipeline_details
       capture_stage_details
       capture_topology_details
-      ############### Temporary code until we decide how to prime intitial value
+      ############### Temporary code until we decide how to prime initial value
       @ssh_user = 'vagrant'
       @ssh_user_pwd = 'vagrant'
       @chef_version = '12.8.1'
@@ -57,33 +57,34 @@ class Topo
 
     # Extract the pipeline options from the config.json details
     def capture_pipeline_details
-      if @raw_data.pipeline
-        @driver_type = 'default'
-        @driver = @raw_data['pipeline']['driver'] || ''
-        @driver_type = driver.split(':', 2)[0] if @driver
-        @pipeline_mach_opts = @raw_data['pipeline']['machine_options'] || {}
-      else Chef::Log.warn('topology-truck cb: No PIPELINE{} details specified.')
-      end
+      m = 'topology-truck cb: No PIPELINE{} details specified.'
+      Chef::Log.warn(m) unless @raw_data['pipeline']
+      return unless @raw_data['pipeline']
+
+      @driver_type = 'default'
+      @driver = @raw_data['pipeline']['driver'] || ''
+      @driver_type = driver.split(':', 2)[0] if @driver
+      @pipeline_mach_opts = @raw_data['pipeline']['machine_options'] || {}
     end
 
     #
     # Extract stage details from the config.json file...
     #
     def capture_stage_details
-      if @raw_data['stages']
-        clause = @raw_data['stages']
-        @acceptance_topologies  = extract_topology(clause, 'acceptance')
-        @union_topologies       = extract_topology(clause, 'union')
-        @rehearsal_topologies   = extract_topology(clause, 'rehearsal')
-        @delivered_topologies   = extract_topology(clause, 'delivered')
-        @pipeline_topologies    = @acceptance_topologies + @union_topologies +
-                                  @rehearsal_topologies + @delivered_topologies
-      else Chef::Log.warn('topology-truck cb: No STAGE{} details specified.')
-      end
+      clause = @raw_data['stages']
+      @acceptance_topologies  = extract_topology(clause, 'acceptance')
+      @union_topologies       = extract_topology(clause, 'union')
+      @rehearsal_topologies   = extract_topology(clause, 'rehearsal')
+      @delivered_topologies   = extract_topology(clause, 'delivered')
+      m = 'topology-truck cb: No STAGE{} details specified.'
+      Chef::Log.warn(m) unless clause
+      @pipeline_topologies = @acceptance_topologies + @union_topologies +
+                             @rehearsal_topologies + @delivered_topologies
     end
 
     def extract_topology(clause, stage)
       return [] unless clause
+      return [] unless clause[stage]
       clause[stage]['topologies'] || []
     end
 
