@@ -57,12 +57,24 @@ class TopologyTruck
 
     # Extract the pipeline options from the config.json details
     def capture_pipeline_details
-      return unless @raw_data['pipeline']
-      @pl_level = true
-      @pl_driver_type = 'default'
-      @pl_driver = @raw_data['pipeline']['driver'] || ''
-      @pl_driver_type = @pl_driver.split(':', 2)[0] if @pl_driver
-      @pl_machine_options = @raw_data['pipeline']['machine_options'] || {}
+      clause = @raw_data['pipeline']
+      @pl_level = true if clause
+      capture_pipeline_driver_type(clause)
+      capture_pipeline_machine_options(clause)
+    end
+
+    def capture_pipeline_driver_type(clause)
+      @pl_driver_type = '_unspecified_'
+      @pl_driver = '_unspecified_' unless clause
+      unless @pl_driver == '_unspecified_'
+        @pl_driver = clause['driver'] || '_unspecified_'
+        @pl_driver_type = @pl_driver.split(':', 2)[0]
+      end
+    end
+
+    def capture_pipeline_machine_options(clause)
+      return {} unless clause
+      @pl_machine_options = clause['machine_options'] || {}
     end
 
     #
@@ -71,6 +83,11 @@ class TopologyTruck
     def capture_stage_details
       clause = @raw_data['stages']
       @st_level = true if clause
+      capture_stage_topology_details(clause)
+      capture_stage_driver_type_details(clause)
+    end
+
+    def capture_stage_topology_details(clause)
       @acceptance_topologies  = extract_topology(clause, 'acceptance')
       @union_topologies       = extract_topology(clause, 'union')
       @rehearsal_topologies   = extract_topology(clause, 'rehearsal')
@@ -83,6 +100,20 @@ class TopologyTruck
       return [] unless clause
       return [] unless clause[stage]
       clause[stage]['topologies'] || []
+    end
+
+    def capture_stage_driver_type_details(clause)
+      @acceptance_driver_type  = extract_driver_type(clause, 'acceptance')
+      @union_driver_type       = extract_driver_type(clause, 'union')
+      @rehearsal_driver_type   = extract_driver_type(clause, 'rehearsal')
+      @delivered_driver_type   = extract_driver_type(clause, 'delivered')
+    end
+
+    def extract_driver_type(clause, stage)
+      return @pl_driver_type unless clause
+      return @pl_driver_type unless clause[stage]
+      return @pl_driver_type unless clause[stage]['driver']
+      clause[stage]['driver'].split(':', 2)[0]
     end
 
     #
@@ -187,12 +218,12 @@ class TopologyTruck
 
     def pl_driver
       return @pl_driver if @pl_driver
-      'default'
+      '_unspecified_'
     end
 
     def pl_driver_type
       return @pl_driver_type if @pl_driver_type
-      'default'
+      '_unspecified_'
     end
 
     def pl_machine_options
@@ -219,10 +250,10 @@ class TopologyTruck
     end
 
     def st_driver_type(st)
-      return { 'none_specified' => true } if st == 'acceptance'
-      return { 'none_specified' => true } if st == 'union'
-      return { 'none_specified' => true } if st == 'rehearsal'
-      return { 'none_specified' => true } if st == 'delivered'
+      return @acceptance_driver_type  if st == 'acceptance'
+      return @union_driver_type       if st == 'union'
+      return @rehearsal_driver_type   if st == 'rehearsal'
+      return @delivered_driver_type   if st == 'delivered'
       { 'none_specified' => true }
     end
 
@@ -273,9 +304,9 @@ class TopologyTruck
 
     def tp_topologies(st)
       return @acceptance_topologies if st == 'acceptance'
-      return @union_topologies if st == 'union'
-      return @rehearsal_topologies if st == 'rehearsal'
-      return @delivered_topologies if st == 'delivered'
+      return @union_topologies      if st == 'union'
+      return @rehearsal_topologies  if st == 'rehearsal'
+      return @delivered_topologies  if st == 'delivered'
       [{ 'none_specified_for_stage' => st }]
     end
   end
