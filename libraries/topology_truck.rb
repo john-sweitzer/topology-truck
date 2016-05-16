@@ -57,12 +57,13 @@ class TopologyTruck
     end
     
     # ssh_key = encrypted_data_bag_item_for_environment('provisioning-data','ssh_key')
-    def self.ssh_key
+    def self.ssh_key(node)
       unless @ssh_key
-        @ssh_key = encrypted_data_bag_item_for_environment(
-        'provisioning-data',
-        'ssh_key'
-        )
+       @ssh_key =  Chef::Sugar::DataBag.encrypted_data_bag_item_for_environment(node, 'provisioning_data', 'ssh_key') 
+       # @ssh_key = encrypted_data_bag_item_for_environment(
+       #   'provisioning-data',
+       #   'ssh_key'
+       # )
         return {} unless @ssh_key
       end
       @ssh_key
