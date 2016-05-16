@@ -135,7 +135,7 @@ topology_list.each do |topology|
       add_machine_options convergence_options: { ssl_verify_mode: :verify_none }
       add_machine_options convergence_options: { chef_config: debug_config } if debug_config
       add_machine_options bootstrap_options: {
-        key_name: ssh_key['name'],
+        key_name: TopologyTruck::ConfigParms.ssh_private_key_path['name'],
         key_path: ssh_private_key_path
       } if topo_truck_parms.pl_driver_type == 'aws'
     end

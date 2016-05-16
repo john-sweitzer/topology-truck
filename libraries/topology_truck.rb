@@ -24,7 +24,9 @@ class TopologyTruck
   class ConfigParms
     @stage_topologies = {}
     @topos = {}
-    @ssh_private_key_path = nil 
+    @ssh_private_key_path = nil
+    @ssh_key = nil
+    
 # CLASS METHODS - START..
     def self.get_topo(name, data_bag = 'topologies')
       unless @topos[name]
@@ -52,6 +54,18 @@ class TopologyTruck
         return {} unless @ssh_private_key_path
       end
       @ssh_private_key_path
+    end
+    
+    # ssh_key = encrypted_data_bag_item_for_environment('provisioning-data','ssh_key')
+    def self.ssh_key
+      unless @ssh_key
+        @ssh_key = encrypted_data_bag_item_for_environment(
+        'provisioning-data',
+        'ssh_key'
+        )
+        return {} unless @ssh_key
+      end
+      @ssh_key
     end
 # CLASS METHOD - END...
     
