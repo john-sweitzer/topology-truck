@@ -67,7 +67,7 @@ topology_list = []
 with_server_config do
   # Retrieve the topology details from data bags in the Chef server...
   tp_truck_parms.st_topologies(stage).each do |topology_name|
-    topology = Topo::Topology.get_topo(topology_name)
+    topology = TopologyTruck::ConfigParms.get_topo(topology_name)
     if topology
       topology_list.push(topology)
     else

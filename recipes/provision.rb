@@ -21,7 +21,9 @@ topo_truck_parms = TopologyTruck::ConfigParms.new(raw_data.to_hash)
 
 # Decrypt the SSH private key Chef provisioning uses to connect to the
 # machine and save the key to disk when the driver is aws
-include_recipe "#{cookbook_name}::_setup_ssh_for_aws" if topo_truck_parms.pl_driver_type == 'aws'
+with_server_config do
+    include_recipe "#{cookbook_name}::_setup_ssh_for_aws" if topo_truck_parms.pl_driver_type == 'aws'
+end
 
 # ssh_key = {}
 # with_server_config do
@@ -72,7 +74,7 @@ topology_list = []
 with_server_config do
   # Retrieve the topology details from data bags in the Chef server...
   topo_truck_parms.st_topologies(stage).each do |topology_name|
-    topology = Topo::Topology.get_topo(topology_name)
+    topology = TopologyTruck::ConfigParms.get_topo(topology_name)
     if topology
       topology_list.push(topology)
     else

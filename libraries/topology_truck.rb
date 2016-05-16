@@ -23,8 +23,9 @@ class TopologyTruck
   # Handle config.json for topology-truck
   class ConfigParms
     @stage_topologies = {}
-
-    # class method to get or create Topo instance
+    @topos = {}
+    @ssh_private_key_path = nil 
+# CLASS METHODS - START..
     def self.get_topo(name, data_bag = 'topologies')
       unless @topos[name]
         @topos[name] = load_from_bag(name, name, data_bag)
@@ -43,7 +44,18 @@ class TopologyTruck
       end
       topo
     end
-
+    
+    # ssh_private_key_path = File.join(node['delivery']['workspace']['cache'], '.ssh')
+    def self.ssh_private_key_path
+      unless @ssh_private_key_path
+        @ssh_private_key_path = File.join(node['delivery']['workspace']['cache'], '.ssh')
+        return {} unless @ssh_private_key_path
+      end
+      @ssh_private_key_path
+    end
+# CLASS METHOD - END...
+    
+    
     def initialize(raw_data, _stage = 'acceptance')
       @raw_data = raw_data['topology-truck'] || raw_data['topology_truck'] || {}
       capture_pipeline_details
