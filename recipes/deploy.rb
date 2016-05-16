@@ -7,6 +7,8 @@
 #
 # rubocop:disable LineLength
 
+include_recipe 'chef-sugar'
+
 # Use these local variable in the rest of the recipe.
 # project = node['delivery']['change']['project']
 stage = node['delivery']['change']['stage']
