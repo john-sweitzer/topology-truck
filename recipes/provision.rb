@@ -7,6 +7,7 @@
 #
 #
 # rubocop:disable LineLength
+
 include_recipe 'chef-sugar'
 
 # Setup up some local variable for frequently used values for cleaner code...
@@ -16,31 +17,29 @@ stage = node['delivery']['change']['stage']
 # Setup local variables for configuration details in the config.json file...
 raw_data = {}
 raw_data['topology-truck'] = node['delivery']['config']['topology-truck']
-
-Chef::Log.warn(
-  'topology-truck cb: The config.json file has no topology-truck hash so logic is being skipped'
-) unless raw_data['topology-truck']
-return unless raw_data['topology-truck']
-
-topo_truck_parms = TopologyTruck::ConfigParms.new(raw_data.to_hash, stage) if raw_data['topology-truck']
+topo_truck_parms = TopologyTruck::ConfigParms.new(raw_data.to_hash)
 
 # Decrypt the SSH private key Chef provisioning uses to connect to the
 # machine and save the key to disk when the driver is aws
-ssh_key = {}
-with_server_config do
-  ssh_key = encrypted_data_bag_item_for_environment('provisioning-data', 'ssh_key') if topo_truck_parms.pl_driver_type == 'aws'
-end
-ssh_private_key_path = File.join(node['delivery']['workspace']['cache'], '.ssh')
-directory ssh_private_key_path if topo_truck_parms.pl_driver_type == 'aws'
-file_name = ssh_key['name'] || 'noFileToSetup'
-file File.join(ssh_private_key_path, "#{file_name}.pem") do
-  sensitive true
-  content ssh_key['private_key']
-  owner node['delivery_builder']['build_user']
-  group node['delivery_builder']['build_user']
-  mode '0600'
-  only_if { topo_truck_parms.pl_driver_type == 'aws' }
-end
+include_recipe "#{cookbook_name}::__ssh_for_aws" if topo_truck_parms.pl_driver_type == 'aws'
+
+# ssh_key = {}
+# with_server_config do
+#   ssh_key = encrypted_data_bag_item_for_environment('provisioning-data', 'ssh_key') if topo_truck_parms.pl_driver_type == 'aws'
+# end
+# ssh_private_key_path = File.join(node['delivery']['workspace']['cache'], '.ssh')
+# directory ssh_private_key_path if topo_truck_parms.pl_driver_type == 'aws'
+# file_name = ssh_key['name'] || 'noFileToSetup'
+# file File.join(ssh_private_key_path, "#{file_name}.pem") do
+#   sensitive true
+#   content ssh_key['private_key']
+#   owner node['delivery_builder']['build_user']
+#   group node['delivery_builder']['build_user']
+#   mode '0600'
+#  only_if { topo_truck_parms.pl_driver_type == 'aws' }
+# end
+
+# 
 
 # Load AWS credentials.
 include_recipe "#{cookbook_name}::_aws_creds" if topo_truck_parms.pl_driver_type == 'aws'
@@ -49,17 +48,18 @@ include_recipe "#{cookbook_name}::_aws_creds" if topo_truck_parms.pl_driver_type
 with_machine_options(topo_truck_parms.machine_options)
 
 # Initialize the provisioning driver after loading it..
-require 'chef/provisioning/ssh_driver' if topo_truck_parms.pl_driver_type == 'ssh'
-require 'chef/provisioning/aws_driver' if topo_truck_parms.pl_driver_type == 'aws'
-require 'chef/provisioning/vagrant_driver' if topo_truck_parms.pl_driver_type == 'vagrant'
+require 'chef/provisioning/ssh_driver'      if topo_truck_parms.pl_driver_type == 'ssh'
+require 'chef/provisioning/aws_driver'      if topo_truck_parms.pl_driver_type == 'aws'
+# require 'chef/provisioning/vagrant_driver'  if topo_truck_parms.pl_driver_type == 'vagrant'
 with_driver topo_truck_parms.pl_driver
 
-if topo_truck_parms.pl_driver_type == 'vagrant'
-  vagrant_box 'ubuntu64-12.4' do
-    url 'https://opscode-vm-bento.s3.amazonaws.com/vagrant/virtualbox/opscode_ubuntu-14.04_chef-provisionerless.box'
-    only_if { topo_truck_parms.pl_driver_type == 'vagrant' }
-  end
-end
+# Following code is commented out until vagrant driver support is added.
+# if topo_truck_parms.pl_driver_type == 'vagrant'
+#  vagrant_box 'ubuntu64-12.4' do
+#    url 'https://opscode-vm-bento.s3.amazonaws.com/vagrant/virtualbox/opscode_ubuntu-14.04_chef-provisionerless.box'
+#    only_if { topo_truck_parms.pl_driver_type == 'vagrant' }
+#  end
+# end
 
 #  The recipe is expecting there to be a list of topologies that need machine
 #  for  each stage of the pipeline.  Source of the topology list is determined
@@ -71,18 +71,15 @@ topology_list = []
 
 # Run something in compile phase using delivery chef server
 with_server_config do
-  Chef::Log.info("Doing stuff like topo truck getting data bags from chef server #{delivery_chef_server[:chef_server_url]}")
-
   # Retrieve the topology details from data bags in the Chef server...
   topo_truck_parms.st_topologies(stage).each do |topology_name|
-    Chef::Log.warn("#{topology_name} topology.json was fetched from the Chef server. ")
     topology = Topo::Topology.get_topo(topology_name)
-
     if topology
       topology_list.push(topology)
     else
       Chef::Log.warn(
-        "Unable to find topology #{topology_name} so skipping.")
+        "Unable to fetch topology #{topology_name} from the #{delivery_chef_server[:chef_server_url]} so skipping (provision)."
+      )
     end
   end
 end
@@ -100,9 +97,6 @@ with_chef_server(
 # arbitrary options to go in client.rb on provisioned nodes
 debug_config = "log_level :info \n"\
   'verify_api_cert false'
-
-############################################# old code
-# driver_stage_machine_opts = node[project][stage][topo_truck_parms.pl_driver_type]['config']['machine_options']
 
 # Now we are ready to provision the nodes in each of the topologies
 topology_list.each do |topology|

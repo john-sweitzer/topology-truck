@@ -4,23 +4,20 @@
 #
 #  Copyright:: Copyright (c) 2016 ThirdWave Insights, LLC
 # License:: Apache License, Version 2.0
+#
+# rubocop:disable LineLength
 
-# Use these local variable in the rest of the recipe
-# to make the code cleaner...
+# Use these local variable in the rest of the recipe.
 # project = node['delivery']['change']['project']
 stage = node['delivery']['change']['stage']
 
 # Setup local variables for configuration details
 # from the config.json file...
-# rubocop:disable LineLength
+
 raw_data = {}
 raw_data['topology-truck'] = node['delivery']['config']['topology-truck']
 
-Chef::Log.warn(
-  'topology-truck cb: The config.json file has no topology-truck hash so logic is being skipped') unless raw_data['topology-truck']
-return unless raw_data['topology-truck']
-
-tp_truck_parms = TopologyTruck::ConfigParms.new(raw_data.to_hash, stage) if raw_data['topology-truck']
+tp_truck_parms = TopologyTruck::ConfigParms.new(raw_data.to_hash)
 
 # Decrypt the SSH private key Chef provisioning uses to connect to the
 # machine and save the key to disk when the driver is aws
@@ -47,16 +44,16 @@ with_machine_options(tp_truck_parms.machine_options)
 # Initialize the provisioning driver after loading it..
 require 'chef/provisioning/ssh_driver' if tp_truck_parms.pl_driver_type == 'ssh'
 require 'chef/provisioning/aws_driver' if tp_truck_parms.pl_driver_type == 'aws'
-require 'chef/provisioning/vagrant_driver' if tp_truck_parms.pl_driver_type == 'vagrant'
+# require 'chef/provisioning/vagrant_driver' if tp_truck_parms.pl_driver_type == 'vagrant'
 
 with_driver tp_truck_parms.pl_driver
-
-if tp_truck_parms.pl_driver_type == 'vagrant'
-  vagrant_box 'ubuntu64-12.4' do
-    url 'https://opscode-vm-bento.s3.amazonaws.com/vagrant/virtualbox/opscode_ubuntu-14.04_chef-provisionerless.box'
-    only_if { tp_truck_parms.pl_driver_type == 'vagrant' }
-  end
-end
+# Following code is commented out until vagrant driver support is added.
+# if tp_truck_parms.pl_driver_type == 'vagrant'
+#  vagrant_box 'ubuntu64-12.4' do
+#    url 'https://opscode-vm-bento.s3.amazonaws.com/vagrant/virtualbox/opscode_ubuntu-14.04_chef-provisionerless.box'
+#    only_if { tp_truck_parms.pl_driver_type == 'vagrant' }
+#  end
+# end
 
 #  The recipe is expecting there to be a list of topologies that need machine
 #  for  each stage of the pipeline.  Source of the topology list is determined
@@ -68,18 +65,14 @@ topology_list = []
 
 # Run something in compile phase using delivery chef server
 with_server_config do
-  Chef::Log.info("Doing stuff like topo truck getting data bags from chef server #{delivery_chef_server[:chef_server_url]}")
-
   # Retrieve the topology details from data bags in the Chef server...
   tp_truck_parms.st_topologies(stage).each do |topology_name|
-    Chef::Log.warn("#{topology_name} topology.json was fetched from the Chef server. ")
-
     topology = Topo::Topology.get_topo(topology_name)
     if topology
       topology_list.push(topology)
     else
       Chef::Log.warn(
-        "Unable to find topology #{topology_name} so cannot privision any nodes.")
+        "Unable to fetch topology #{topology_name} from chef server #{delivery_chef_server[:chef_server_url]} so skipping (deploy).")
     end
   end
 end

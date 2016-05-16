@@ -2,26 +2,19 @@
 # Cookbook Name:: topology-truck
 # Recipe:: default
 #
-# Copyright (c) 2016 The Authors, All Rights Reserved.
-# rubocop:disable LineLength
-# Setup up some local variable for frequently used values for cleaner code...
-# project = node['delivery']['change']['project']
+# Copyright:: Copyright (c) 2016 ThirdWave Insights, LLC
+# License:: Apache License, Version 2.0
 
+# rubocop:disable LineLength
+
+# Setup up some local variable for frequently used values for cleaner code...
 stage = node['delivery']['change']['stage']
 
 # Setup local variables for configuration details in the config.json file...
 raw_data = {}
 raw_data['topology-truck'] = node['delivery']['config']['topology-truck']
 
-Chef::Log.warn(
-  'topology-truck cb: No topology-truck hash so logic is skipped'
-) unless raw_data['topology-truck']
-
-return unless raw_data['topology-truck']
-
-topo_truck_parms = TopologyTruck::ConfigParms.new(
-  raw_data.to_hash, stage
-) if raw_data['topology-truck']
+topo_truck_parms = TopologyTruck::ConfigParms.new(raw_data.to_hash)
 
 Chef::Log.warn(
   "topology-truck hash.......  #{raw_data}")
