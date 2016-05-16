@@ -16,7 +16,8 @@ ssh_key = {}
   )
 # end
 # ssh_private_key_path = File.join(node['delivery']['workspace']['cache'], '.ssh')
-directory TopologyTruck::ConfigParms.ssh_private_key_path(node['delivery']['workspace']['cache'])
+ssh_private_key_path = TopologyTruck::ConfigParms.ssh_private_key_path(node['delivery']['workspace']['cache'])  
+directory ssh_private_key_path
 file_name = ssh_key['name'] || 'noFileToSetup'
 file File.join(ssh_private_key_path, "#{file_name}.pem") do
   sensitive true
