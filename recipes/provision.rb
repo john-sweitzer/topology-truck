@@ -112,6 +112,7 @@ topology_list.each do |topology|
 
   # Provision each node in the current topology...
   nodes = []
+  ssh_private_key_path = TopologyTruck::ConfigParms.ssh_private_key_path(node['delivery']['workspace']['cache'])  # if aws
   topology.nodes.each do |node_details|
     # hack...to overcome this message....
     # Cannot move 'buildserver-buildserver-master' from ssh:/var/opt/delivery/workspace/33.33.33.11/ourcompany/
