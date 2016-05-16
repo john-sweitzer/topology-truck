@@ -17,20 +17,20 @@ stage = node['delivery']['change']['stage']
 # Setup local variables for configuration details in the config.json file...
 raw_data = {}
 raw_data['topology-truck'] = node['delivery']['config']['topology-truck']
-topo_truck_parms = TopologyTruck::ConfigParms.new(raw_data.to_hash)
+tp_truck_parms = TopologyTruck::ConfigParms.new(raw_data.to_hash)
 
 # Decrypt the SSH private key Chef provisioning uses to connect to the
 # machine and save the key to disk when the driver is aws
 with_server_config do
-    include_recipe "#{cookbook_name}::_setup_ssh_for_aws" if topo_truck_parms.pl_driver_type == 'aws'
+    include_recipe "#{cookbook_name}::_setup_ssh_for_aws" if tp_truck_parms.pl_driver_type == 'aws'
 end
 
 # ssh_key = {}
 # with_server_config do
-#   ssh_key = encrypted_data_bag_item_for_environment('provisioning-data', 'ssh_key') if topo_truck_parms.pl_driver_type == 'aws'
+#   ssh_key = encrypted_data_bag_item_for_environment('provisioning-data', 'ssh_key') if tp_truck_parms.pl_driver_type == 'aws'
 # end
 # ssh_private_key_path = File.join(node['delivery']['workspace']['cache'], '.ssh')
-# directory ssh_private_key_path if topo_truck_parms.pl_driver_type == 'aws'
+# directory ssh_private_key_path if tp_truck_parms.pl_driver_type == 'aws'
 # file_name = ssh_key['name'] || 'noFileToSetup'
 # file File.join(ssh_private_key_path, "#{file_name}.pem") do
 #   sensitive true
@@ -38,27 +38,27 @@ end
 #   owner node['delivery_builder']['build_user']
 #   group node['delivery_builder']['build_user']
 #   mode '0600'
-#  only_if { topo_truck_parms.pl_driver_type == 'aws' }
+#  only_if { tp_truck_parms.pl_driver_type == 'aws' }
 # end
 #
 
 # Load AWS credentials.
-include_recipe "#{cookbook_name}::_aws_creds" if topo_truck_parms.pl_driver_type == 'aws'
+include_recipe "#{cookbook_name}::_aws_creds" if tp_truck_parms.pl_driver_type == 'aws'
 
 # Machine options will start with the template for the active driver...
-with_machine_options(topo_truck_parms.machine_options)
+with_machine_options(tp_truck_parms.machine_options)
 
 # Initialize the provisioning driver after loading it..
-require 'chef/provisioning/ssh_driver'      if topo_truck_parms.pl_driver_type == 'ssh'
-require 'chef/provisioning/aws_driver'      if topo_truck_parms.pl_driver_type == 'aws'
-# require 'chef/provisioning/vagrant_driver'  if topo_truck_parms.pl_driver_type == 'vagrant'
-with_driver topo_truck_parms.pl_driver
+require 'chef/provisioning/ssh_driver'      if tp_truck_parms.pl_driver_type == 'ssh'
+require 'chef/provisioning/aws_driver'      if tp_truck_parms.pl_driver_type == 'aws'
+# require 'chef/provisioning/vagrant_driver'  if tp_truck_parms.pl_driver_type == 'vagrant'
+with_driver tp_truck_parms.pl_driver
 
 # Following code is commented out until vagrant driver support is added.
-# if topo_truck_parms.pl_driver_type == 'vagrant'
+# if tp_truck_parms.pl_driver_type == 'vagrant'
 #  vagrant_box 'ubuntu64-12.4' do
 #    url 'https://opscode-vm-bento.s3.amazonaws.com/vagrant/virtualbox/opscode_ubuntu-14.04_chef-provisionerless.box'
-#    only_if { topo_truck_parms.pl_driver_type == 'vagrant' }
+#    only_if { tp_truck_parms.pl_driver_type == 'vagrant' }
 #  end
 # end
 
@@ -73,7 +73,7 @@ topology_list = []
 # Run something in compile phase using delivery chef server
 with_server_config do
   # Retrieve the topology details from data bags in the Chef server...
-  topo_truck_parms.st_topologies(stage).each do |topology_name|
+  tp_truck_parms.st_topologies(stage).each do |topology_name|
     topology = TopologyTruck::ConfigParms.get_topo(topology_name)
     if topology
       topology_list.push(topology)
@@ -123,7 +123,7 @@ topology_list.each do |topology|
 
     chef_node node_details.name do
       attribute 'chef_provisioning', {}
-      only_if { topo_truck_parms.pl_driver_type == 'ssh' }
+      only_if { tp_truck_parms.pl_driver_type == 'ssh' }
     end
     with_server_config do
       # Prepare a new machine / node for a chef client run...
@@ -138,7 +138,7 @@ topology_list.each do |topology|
         add_machine_options bootstrap_options: {
           key_name: TopologyTruck::ConfigParms.ssh_key(node)['name'],
           key_path: ssh_private_key_path
-        } if topo_truck_parms.pl_driver_type == 'aws'
+        } if tp_truck_parms.pl_driver_type == 'aws'
       end
     end  
   end
