@@ -46,9 +46,9 @@ class TopologyTruck
     end
     
     # ssh_private_key_path = File.join(node['delivery']['workspace']['cache'], '.ssh')
-    def self.ssh_private_key_path
+    def self.ssh_private_key_path(file_name)
       unless @ssh_private_key_path
-        @ssh_private_key_path = File.join(node['delivery']['workspace']['cache'], '.ssh')
+        @ssh_private_key_path = File.join(file_name, '.ssh')
         return {} unless @ssh_private_key_path
       end
       @ssh_private_key_path
