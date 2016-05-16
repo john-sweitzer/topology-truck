@@ -10,7 +10,10 @@
 # machine and save the key to disk when the driver is aws
 ssh_key = {}
 with_server_config do
-  ssh_key = encrypted_data_bag_item_for_environment('provisioning-data', 'ssh_key')
+  ssh_key = encrypted_data_bag_item_for_environment(
+    'provisioning-data',
+    'ssh_key'
+  )
 end
 ssh_private_key_path = File.join(node['delivery']['workspace']['cache'], '.ssh')
 directory ssh_private_key_path

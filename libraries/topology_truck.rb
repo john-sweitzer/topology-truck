@@ -49,6 +49,23 @@ class TopologyTruck
       capture_pipeline_details
       capture_stage_details
       capture_topology_details
+
+      set_ssh_machine_parms
+      set_aws_machine_parms
+    end
+
+    def set_aws_machine_parms
+      ############### Temporary code until we decide how to prime initial value
+      @instance_type = 't2.micro'
+      # @key_name,
+      @security_group_ids = ['sg-ecaf5b89']
+      @aws_ssh_user = 'ubuntu'
+      @image_id = 'ami-c94856a8'
+      # @use_private_ip_for_ssh
+      @subnet_id = 'subnet-bb898bcf'
+    end
+
+    def set_ssh_machine_parms
       ############### Temporary code until we decide how to prime initial value
       @ssh_user = 'vagrant'
       @ssh_user_pwd = 'vagrant'

@@ -38,8 +38,7 @@ include_recipe "#{cookbook_name}::__ssh_for_aws" if topo_truck_parms.pl_driver_t
 #   mode '0600'
 #  only_if { topo_truck_parms.pl_driver_type == 'aws' }
 # end
-
-# 
+#
 
 # Load AWS credentials.
 include_recipe "#{cookbook_name}::_aws_creds" if topo_truck_parms.pl_driver_type == 'aws'
