@@ -218,7 +218,8 @@ class TopologyTruck
         },
         ssh_username:           @aws_ssh_user,
         image_id:               @image_id,
-        use_private_ip_for_ssh: @use_private_ip_for_ssh
+        use_private_ip_for_ssh: @use_private_ip_for_ssh,
+        transport_address_location: 'public_ip' #:public_ip
       }
 
       # Add any optional machine options
