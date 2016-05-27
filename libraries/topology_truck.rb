@@ -14,11 +14,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
+# rubocop:disable LineLength
+# rubocop:disable ClassLength
+# rubocop:disable HashSyntax
 
 require 'chef/data_bag_item'
 require_relative './node'
 
-# rubocop:disable ClassLength
 class TopologyTruck
   # Handle config.json for topology-truck
   class ConfigParms
@@ -26,28 +29,13 @@ class TopologyTruck
     @topos = {}
     @ssh_private_key_path = nil
     @ssh_key = nil
-    
-# CLASS METHODS - START..
-    def self.get_topo(name, data_bag = 'topologies')
-      unless @topos[name]
-        @topos[name] = load_from_bag(name, name, data_bag)
-        return nil unless @topos[name]
-      end
-      @topos[name]
-    end
+    @any_ssh_drivers = false
+    @any_aws_drivers = false
 
-    def self.load_from_bag(name, item, data_bag)
-      begin
-        raw_data = Chef::DataBagItem.load(data_bag, item)
-        raw_data['name'] = item if raw_data # Restore name attr - chef bug
-        topo = Topo::Topology.new(name, raw_data.to_hash) if raw_data
-      rescue Net::HTTPServerException => e
-        raise unless e.to_s =~ /^404/
-      end
-      topo
-    end
-    
-    # ssh_private_key_path = File.join(node['delivery']['workspace']['cache'], '.ssh')
+    # CLASS METHODS - START..
+
+    # ssh_private_key_path =
+    #         File.join(node['delivery']['workspace']['cache'],'.ssh')
     def self.ssh_private_key_path(file_name)
       unless @ssh_private_key_path
         @ssh_private_key_path = File.join(file_name, '.ssh')
@@ -55,24 +43,27 @@ class TopologyTruck
       end
       @ssh_private_key_path
     end
-    
-    # ssh_key = encrypted_data_bag_item_for_environment('provisioning-data','ssh_key')
+
+    # ssh_key=encrypted_data_bag_item_for_environment(
+    #  'provisioning-data',
+    #  'ssh_key'
+    #  )
     def self.ssh_key(node)
       unless @ssh_key
-       @ssh_key =  Chef::Sugar::DataBag.encrypted_data_bag_item_for_environment(node, 'provisioning-data', 'ssh_key') 
-       # @ssh_key = encrypted_data_bag_item_for_environment(
-       #   'provisioning-data',
-       #   'ssh_key'
-       # )
+        @ssh_key = Chef::Sugar::DataBag.encrypted_data_bag_item_for_environment(
+          node,
+          'provisioning-data',
+          'ssh_key'
+        )
         return {} unless @ssh_key
       end
       @ssh_key
     end
-# CLASS METHOD - END...
-    
-    
-    def initialize(raw_data, _stage = 'acceptance')
+    # CLASS METHOD - END...
+
+    def initialize(raw_data)
       @raw_data = raw_data['topology-truck'] || raw_data['topology_truck'] || {}
+      @has_driver = false
       capture_pipeline_details
       capture_stage_details
       capture_topology_details
@@ -82,7 +73,7 @@ class TopologyTruck
     end
 
     def set_aws_machine_parms
-      ############### Temporary code until we decide how to prime initial value
+      # TODO: ############## Temporary code until we decide how to prime initial value
       @instance_type = 't2.micro'
       # @key_name,
       @security_group_ids = ['sg-ecaf5b89']
@@ -93,7 +84,7 @@ class TopologyTruck
     end
 
     def set_ssh_machine_parms
-      ############### Temporary code until we decide how to prime initial value
+      # TODO: ############## Temporary code until we decide how to prime initial value
       @ssh_user = 'vagrant'
       @ssh_user_pwd = 'vagrant'
       @chef_version = '12.8.1'
@@ -103,16 +94,26 @@ class TopologyTruck
     def capture_pipeline_details
       clause = @raw_data['pipeline']
       @pl_level = true if clause
+      capture_pipeline_driver(clause)
       capture_pipeline_driver_type(clause)
       capture_pipeline_machine_options(clause)
     end
 
-    def capture_pipeline_driver_type(clause)
-      @pl_driver_type = '_unspecified_'
+    def capture_pipeline_driver(clause)
       @pl_driver = '_unspecified_' unless clause
       unless @pl_driver == '_unspecified_'
         @pl_driver = clause['driver'] || '_unspecified_'
-        @pl_driver_type = @pl_driver.split(':', 2)[0]
+        @has_pl_driver = true if clause['driver']
+      end
+    end
+
+    def capture_pipeline_driver_type(clause)
+      @pl_driver_type = '_unspecified_' unless clause
+      unless @pl_driver_type == '_unspecified_'
+        temp = clause['driver'] || '_unspecified_'
+        @pl_driver_type = temp.split(':', 2)[0]
+        @any_aws_drivers = true if @pl_driver_type == 'aws'
+        @any_ssh_drivers = true if @pl_driver_type == 'ssh'
       end
     end
 
@@ -128,7 +129,9 @@ class TopologyTruck
       clause = @raw_data['stages']
       @st_level = true if clause
       capture_stage_topology_details(clause)
+      capture_stage_driver_details(clause)
       capture_stage_driver_type_details(clause)
+      capture_stage_machine_options(clause)
     end
 
     def capture_stage_topology_details(clause)
@@ -146,18 +149,54 @@ class TopologyTruck
       clause[stage]['topologies'] || []
     end
 
-    def capture_stage_driver_type_details(clause)
-      @acceptance_driver_type  = extract_driver_type(clause, 'acceptance')
-      @union_driver_type       = extract_driver_type(clause, 'union')
-      @rehearsal_driver_type   = extract_driver_type(clause, 'rehearsal')
-      @delivered_driver_type   = extract_driver_type(clause, 'delivered')
+    def capture_stage_driver_details(clause)
+      @acceptance_driver  = extract_stage_driver(clause, 'acceptance')
+      @union_driver       = extract_stage_driver(clause, 'union')
+      @rehearsal_driver   = extract_stage_driver(clause, 'rehearsal')
+      @delivered_driver   = extract_stage_driver(clause, 'delivered')
     end
 
-    def extract_driver_type(clause, stage)
+    def extract_stage_driver(clause, stage)
+      # use pipeline driver details if there are no stage level details...
+      return @pl_driver unless clause
+      return @pl_driver unless clause[stage]
+      return @pl_driver_type unless clause[stage]['driver']
+      # we have stage level driver details...
+      @has_st_driver = true
+      clause[stage]['driver']
+    end
+
+    def capture_stage_driver_type_details(clause)
+      @acceptance_driver_type  = extract_stage_driver_type(clause, 'acceptance')
+      @union_driver_type       = extract_stage_driver_type(clause, 'union')
+      @rehearsal_driver_type   = extract_stage_driver_type(clause, 'rehearsal')
+      @delivered_driver_type   = extract_stage_driver_type(clause, 'delivered')
+    end
+
+    def extract_stage_driver_type(clause, stage)
+      # use pipeline driver details if there are no stage level details...
       return @pl_driver_type unless clause
       return @pl_driver_type unless clause[stage]
       return @pl_driver_type unless clause[stage]['driver']
-      clause[stage]['driver'].split(':', 2)[0]
+      # we have stage level driver details...
+      temp = clause[stage]['driver'].split(':', 2)[0]
+      @any_aws_drivers = true if temp == 'aws'
+      @any_ssh_drivers = true if temp == 'ssh'
+      temp
+    end
+
+    def capture_stage_machine_options(clause)
+      @acceptance_machine_options  = extract_machine_options(clause, 'acceptance')
+      @union_machine_options       = extract_machine_options(clause, 'union')
+      @rehearsal_machine_options   = extract_machine_options(clause, 'rehearsal')
+      @delivered_machine_options   = extract_machine_options(clause, 'delivered')
+    end
+
+    def extract_machine_options(clause, stage)
+      return @pl_machine_options unless clause
+      return @pl_machine_options unless clause[stage]
+      return @pl_machine_options unless clause[stage]['machine_options']
+      clause[stage]['machine_options'] || {}
     end
 
     #
@@ -171,12 +210,106 @@ class TopologyTruck
 
     # @returns machine option template based on driver type...
     # Templates are derived from patterns in Chef's Delivery-Cluster cookbook...
+    def extract_machine_options_list(opt_hash)
+      list = []
+      list = aws_machine_options_list(opt_hash) if pl_driver_type == 'aws'
+      list = ssh_machine_options_list(opt_hash) if pl_driver_type == 'ssh'
+      list
+    end
+
+    # rubocop:disable MethodLength
+    # rubocop:disable CyclomaticComplexity
+    # rubocop:disable PerceivedComplexity
+    # rubocop:disable AbcSize
+    # @returns list of machine options found in the hash
+    def aws_machine_options_list(opt_hash)
+      list = []
+      if opt_hash['convergence_options']
+        if opt_hash['convergence_options']['bootstrap_proxy']
+          list << { convergence_options: { bootstrap_proxy: opt_hash['convergence_options']['bootstrap_proxy'] } }
+        end
+        if opt_hash['convergence_options']['chef_config']
+          list << { convergence_options: { chef_config: opt_hash['convergence_options']['chef_config'] } }
+        end
+        if opt_hash['convergence_options']['chef_version']
+          list << { convergence_options: { chef_version: opt_hash['convergence_options']['chef_version'] } }
+        end
+        if opt_hash['convergence_options']['install_sh_path']
+          list << { convergence_options: { install_sh_path: opt_hash['convergence_options']['install_sh_path'] } }
+        end
+      end
+      if opt_hash['bootstrap_options']
+        if opt_hash['bootstrap_options']['instance_type']
+          list << { bootstrap_options: { instance_type: opt_hash['bootstrap_options']['instance_type'] } }
+        end
+        if opt_hash['bootstrap_options']['key_name']
+          list << { bootstrap_options: { key_name: opt_hash['bootstrap_options']['key_name'] } }
+        end
+        if opt_hash['bootstrap_options']['security_group_ids']
+          list << { bootstrap_options: { security_group_id: opt_hash['bootstrap_options']['security_group_id'] } }
+        end
+      end
+
+      list << { ssh_username: opt_hash['ssh_username'] }                             if opt_hash['ssh_username']
+      list << { image_id: opt_hash['image_id'] }                                     if opt_hash['image_id']
+      list << { use_private_ip_for_ssh: opt_hash['use_private_ip_for_ssh'] }         if opt_hash['use_private_ip_for_ssh']
+      list << { transport_address_location: opt_hash['transport_address_location'] } if opt_hash['transport_address_location']
+
+      list
+    end
+
+    # @returns list of machine options found in opt_hash
+    def ssh_machine_options_list(opt_hash)
+      list = []
+      if opt_hash[:convergence_options]
+        if opt_hash[:convergence_options][:bootstrap_proxy]
+          list << { convergence_options: { bootstrap_proxy: opt_hash[:convergence_options][:bootstrap_proxy] } }
+        end
+        if opt_hash[:convergence_options][:chef_config]
+          list << { convergence_options: { chef_config: opt_hash[:convergence_options][:chef_config] } }
+        end
+        if opt_hash[:convergence_options][:chef_version]
+          list << { convergence_options: { chef_version: opt_hash[:convergence_options][:chef_version] } }
+        end
+        if opt_hash[:convergence_options][:install_sh_path]
+          list << { convergence_options: { install_sh_path: opt_hash[:convergence_options][:install_sh_path] } }
+        end
+      end
+      if opt_hash[:transport_options]
+        if opt_hash[:transport_options][:username]
+          list << { transport_options: { username: opt_hash[:transport_options][:username] } }
+        end
+        if opt_hash[:transport_options][:ssh_options]
+          if opt_hash[:transport_options][:ssh_options][:user]
+            list << { transport_options: { ssh_options: { user: opt_hash[:transport_options][:ssh_options][:user] } } }
+          end
+          if opt_hash[:transport_options][:ssh_options][:password]
+            list << { transport_options: { ssh_options: { password: opt_hash[:transport_options][:ssh_options][:password] } } }
+          end
+          if opt_hash[:transport_options][:ssh_options][:keys]
+            list << { transport_options: { ssh_options: { keys: opt_hash[:transport_options][:ssh_options][:keys] } } }
+          end
+        end
+        if opt_hash[:transport_options][:options]
+          if opt_hash[:transport_options][:options][:prefix]
+            list << { transport_options: { options: { prefex: opt_hash[:transport_options][:options][:prefix] } } }
+          end
+        end
+      end
+      list
+    end
+    # rubocop:enable MethodLength
+
+    # @returns machine option template based on driver type...
+    # Templates are derived from patterns in Chef's Delivery-Cluster cookbook...
     def machine_options
-      master_template = {}
       master_template = aws_template if pl_driver_type == 'aws'
-      master_template = vagrant_template if pl_driver_type == 'vagrant'
       master_template = ssh_template if pl_driver_type == 'ssh'
-      master_template
+      master_template || {}
+    end
+
+    def machine_options_template
+      machine_options
     end
 
     # rubocop:disable MethodLength
@@ -200,6 +333,7 @@ class TopologyTruck
           }
         }
       }
+
       master_template
     end
 
@@ -230,34 +364,26 @@ class TopologyTruck
       ) if @subnet_id
       master_template
     end
-
-    def vagrant_template
-      master_template = {
-        convergence_options: {
-          bootstrap_proxy: @bootstrap_proxy,
-          chef_config: @chef_config,
-          chef_version: @chef_version,
-          install_sh_path: @install_sh_path
-        },
-        vagrant_options: {
-          'vm.box' => @vm_box,
-          'vm.box_url' => @image_url,
-          'vm.hostname' => @vm_hostname
-        },
-        vagrant_config: @vagrant_config, # Be sure config includes cpu, memory
-        transport_options: {
-          options: {
-            prefix: @prefix
-          }
-        },
-        use_private_ip_for_ssh: @use_private_ip_for_ssh
-      }
-      master_template
-    end
     # rubocop:enable MethodLength
 
+    def drivers?
+      @pl_driver || @st_driver || @tp_driver
+    end
+
+    # Return true is 'aws" was specified at pl, st, or tp levels
+    def any_aws_drivers?
+      return false unless @any_aws_drivers
+      @any_aws_drivers
+    end
+
+    # Return true if 'ssh" was specified at pl, st, or tp levels
+    def any_ssh_drivers?
+      return false unless @any_ssh_drivers
+      @any_ssh_drivers
+    end
+
     def pl_level?
-      return @pl_level if @pl_level
+      return true if @pl_level
       false
     end
 
@@ -282,15 +408,15 @@ class TopologyTruck
     end
 
     def st_level?
-      return @st_level if @st_level
+      return true if @st_level
       false
     end
 
     def st_driver(st)
-      return { 'none_specified' => true } if st == 'acceptance'
-      return { 'none_specified' => true } if st == 'union'
-      return { 'none_specified' => true } if st == 'rehearsal'
-      return { 'none_specified' => true } if st == 'delivered'
+      return @acceptance_driver  if st == 'acceptance'
+      return @union_driver       if st == 'union'
+      return @rehearsal_driver   if st == 'rehearsal'
+      return @delivered_driver   if st == 'delivered'
       { 'none_specified' => true }
     end
 
@@ -303,16 +429,16 @@ class TopologyTruck
     end
 
     def st_machine_options(st)
-      return { 'none_specified' => true } if st == 'acceptance'
-      return { 'none_specified' => true } if st == 'union'
-      return { 'none_specified' => true } if st == 'rehearsal'
-      return { 'none_specified' => true } if st == 'delivered'
+      return @acceptance_machine_options  if st == 'acceptance'
+      return @union_machine_options       if st == 'union'
+      return @rehearsal_machine_options   if st == 'rehearsal'
+      return @delivered_machine_options   if st == 'delivered'
       { 'none_specified' => true }
     end
 
     def st_topologies(st)
       return @acceptance_topologies if st == 'acceptance'
-      return @union_topologies if st == 'union'
+      return @union_topologies      if st == 'union'
       return @rehearsal_topologies if st == 'rehearsal'
       return @delivered_topologies if st == 'delivered'
       [{ 'none_specified_for_stage' => st }]
@@ -323,28 +449,38 @@ class TopologyTruck
       false
     end
 
-    def tp_driver(st)
-      return { 'none_specified' => true } if st == 'acceptance'
-      return { 'none_specified' => true } if st == 'union'
-      return { 'none_specified' => true } if st == 'rehearsal'
-      return { 'none_specified' => true } if st == 'delivered'
+    def tp_driver(tp)
+      return { 'none_specified' => true } if tp == 'acceptance'
+      return { 'none_specified' => true } if tp == 'union'
+      return { 'none_specified' => true } if tp == 'rehearsal'
+      return { 'none_specified' => true } if tp == 'delivered'
       { 'none_specified' => true }
     end
 
-    def tp_driver_type(st)
-      return { 'none_specified' => true } if st == 'acceptance'
-      return { 'none_specified' => true } if st == 'union'
-      return { 'none_specified' => true } if st == 'rehearsal'
-      return { 'none_specified' => true } if st == 'delivered'
+    def tp_driver_type(tp)
+      return { 'none_specified' => true } if tp == 'acceptance'
+      return { 'none_specified' => true } if tp == 'union'
+      return { 'none_specified' => true } if tp == 'rehearsal'
+      return { 'none_specified' => true } if tp == 'delivered'
       { 'none_specified' => true }
     end
 
-    def tp_machine_options(st)
-      return { 'none_specified' => true } if st == 'acceptance'
-      return { 'none_specified' => true } if st == 'union'
-      return { 'none_specified' => true } if st == 'rehearsal'
-      return { 'none_specified' => true } if st == 'delivered'
+    def tp_has_drivers?(_tp)
+      false
+    end
+
+    def tp_calc_driver_type(_tp)
+      pl_driver
+    end
+
+    def tp_machine_options(tp)
+      return { :bootstrap_options => { :instance_type => 'INSTANCE_TYPE', :key_name => 'KEY_NAME', :security_group_ids => 'SECURITY_GROUP_IDS' } } if tp == 'test'
+
       { 'none_specified' => true }
+    end
+
+    def tp_calc_machine_options(_tp)
+      pl_machine_options
     end
 
     def tp_topologies(st)

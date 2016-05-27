@@ -11,10 +11,12 @@
 ssh_key = {}
 # with_server_config do
 ssh_key = TopologyTruck::ConfigParms.ssh_key(node)
- 
+
 # end
-# ssh_private_key_path = File.join(node['delivery']['workspace']['cache'], '.ssh')
-ssh_private_key_path = TopologyTruck::ConfigParms.ssh_private_key_path(node['delivery']['workspace']['cache'])  
+# ssh_private_key_path= File.join(node['delivery']['workspace']['cache'],'.ssh')
+file_name = node['delivery']['workspace']['cache']
+ssh_private_key_path =
+  TopologyTruck::ConfigParms.ssh_private_key_path(file_name)
 directory ssh_private_key_path
 file_name = ssh_key['name'] || 'noFileToSetup'
 file File.join(ssh_private_key_path, "#{file_name}.pem") do

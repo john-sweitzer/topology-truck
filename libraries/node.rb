@@ -45,5 +45,15 @@ class Topo
                       attrs
                     end
     end
+
+    def machine_options_list(driver) # JWS add
+      list = [] if driver == 'aws'
+      list = [] if driver == 'ssh'
+      # TODO: Need logic to extract machine options for current driver...
+      # TODO: When driver is ssh, add ip_address to the list...
+      #     add_machine_options transport_options:
+      #  { ip_address: node_details.ssh_host } if node_details.ssh_host
+      list
+    end
   end
 end

@@ -53,6 +53,13 @@ class Topo
       @chef_environment = @raw_data['chef_environment']
       @tags = @raw_data['tags']
       @attributes = @raw_data['attributes'] || @raw_data['normal'] || {}
+
+      @nd_provision = {}
+      @nd_prov = false
+
+      @tp_provisioning = true if @raw_data['provisioning']
+
+      nodes
     end
 
     def nodes
@@ -84,6 +91,9 @@ class Topo
     def inflate_node(node_data)
       node_data['chef_environment'] ||= @chef_environment if @chef_environment
       node_data['attributes'] = inflate_attrs(node_data)
+
+      @nd_prov = true if node_data['provisioning'] # jws
+      @nd_provision[node_data['name']] = true if @nd_prov
       if @tags
         node_data['tags'] ||= []
         node_data['tags'] |= @tags
@@ -115,6 +125,19 @@ class Topo
       end
 
       node
+    end
+
+    def provisioning?
+      return true if @tp_provisioning
+      return true if @nd_prov
+      false
+    end
+
+    def nd_provisioning(node)
+      return false unless @nd_prov
+      return false if @nd_provision == {}
+      return false unless @nd_provision[node]
+      true
     end
   end
 end

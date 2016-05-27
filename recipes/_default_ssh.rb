@@ -6,14 +6,13 @@
 # License:: Apache License, Version 2.0
 # rubocop:disable LineLength
 # Use these local variable in the rest of the recipe to make the code cleaner...
-stage = node['delivery']['change']['stage']
 
 # Setup ssh provisioning  if it is needed
 
 raw_data = {}
 raw_data['topology-truck'] = node['delivery']['config']['topology-truck']
 
-config = TopologyTruck::ConfigParms.new(raw_data.to_hash, stage) if raw_data['topology-truck']
+config = TopologyTruck::ConfigParms.new(raw_data.to_hash) if raw_data['topology-truck']
 
 deliver_using_ssh = config.pl_driver_type == 'ssh' if config
 
@@ -25,8 +24,8 @@ workspace = node['delivery']['workspace']
 
 directory "#{workspace['root']}/chef/provisioning/ssh" do
   mode 00755
-  owner 'dbuild'
-  group 'dbuild'
+  owner ['delivery_builder']['build_user']
+  group ['delivery_builder']['build_user']
   recursive true
   action :create
   only_if { deliver_using_ssh }

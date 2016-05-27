@@ -23,7 +23,7 @@ tp_truck_parms = TopologyTruck::ConfigParms.new(raw_data.to_hash)
 # Decrypt the SSH private key Chef provisioning uses to connect to the
 # machine and save the key to disk when the driver is aws
 with_server_config do
-    include_recipe "#{cookbook_name}::_setup_ssh_for_aws" if tp_truck_parms.pl_driver_type == 'aws'
+  include_recipe "#{cookbook_name}::_setup_ssh_for_aws" if tp_truck_parms.pl_driver_type == 'aws'
 end
 
 # Load AWS credentials.
@@ -58,7 +58,7 @@ topology_list = []
 with_server_config do
   # Retrieve the topology details from data bags in the Chef server...
   tp_truck_parms.st_topologies(stage).each do |topology_name|
-    topology = TopologyTruck::ConfigParms.get_topo(topology_name)
+    topology = Topo::Topology.get_topo(topology_name)
     if topology
       topology_list.push(topology)
     else
@@ -94,7 +94,7 @@ topology_list.each do |topology|
   #    Chef::Log.warn("*** MACHINE OPTIONS.............    #{mach_opts.inspect}")
   # end
   nodes = []
-  ssh_private_key_path = TopologyTruck::ConfigParms.ssh_private_key_path(node['delivery']['workspace']['cache'])  # if aws
+  ssh_private_key_path = TopologyTruck::ConfigParms.ssh_private_key_path(node['delivery']['workspace']['cache']) # if aws
   # Provision each node in the current topology...
   topology.nodes.each do |node_details|
     nodes << node_details.name
@@ -112,14 +112,14 @@ topology_list.each do |topology|
 
     # Prepare a new machine / node for a chef client run...
     include_ip_address = node_details.ssh_host && tp_truck_parms.pl_driver_type == 'ssh'
-    with_server_config do 
+    with_server_config do
       machine node_details.name do
         action [:converge]
         chef_environment delivery_environment # TODO: logic for topology environments
         attributes node_details.attributes if node_details.attributes
         converge true
         run_list node_details.run_list if node_details.run_list
-        
+
         add_machine_options transport_options: { ip_address: node_details.ssh_host } if include_ip_address
         add_machine_options convergence_options: { ssl_verify_mode: :verify_none }
         add_machine_options convergence_options: { chef_config: debug_config } if debug_config
@@ -127,21 +127,21 @@ topology_list.each do |topology|
           key_name: TopologyTruck::ConfigParms.ssh_key(node)['name'],
           key_path: ssh_private_key_path
         } if tp_truck_parms.pl_driver_type == 'aws'
-   #     machine_options(
-   #       transport_options: {
-   #         'ip_address' => node_details.ssh_host,
-   #         'username' => 'vagrant',
-   #         'ssh_options' => {
-   #           'password' => 'vagrant'
-   #         }
-   #       },
-   #       convergence_options: {
-   #         ssl_verify_mode: :verify_none,
-   #         chef_config: debug_config
-   #       }
-   #     )
+        #     machine_options(
+        #       transport_options: {
+        #         'ip_address' => node_details.ssh_host,
+        #         'username' => 'vagrant',
+        #         'ssh_options' => {
+        #           'password' => 'vagrant'
+        #         }
+        #       },
+        #       convergence_options: {
+        #         ssl_verify_mode: :verify_none,
+        #         chef_config: debug_config
+        #       }
+        #     )
       end
-    end  
+    end
   end
   Chef::Log.warn("These Chef nodes are being deployed for the #{topology_name} topology...")
   Chef::Log.warn(nodes.to_s)

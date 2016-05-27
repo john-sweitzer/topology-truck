@@ -5,6 +5,7 @@
 				"pipeline":{
 					"driver":"ssh"
 				},
+                                "topologies": { },
 				"stages":{
 					"acceptance":{
 						"topologies":[
