@@ -8,7 +8,7 @@
 # rubocop:disable LineLength
 
 # Setup up some local variable for frequently used values for cleaner code...
-# stage = node['delivery']['change']['stage']
+stage = node['delivery']['change']['stage']
 
 # Setup local variables for configuration details in the config.json file...
 raw_data = {}
