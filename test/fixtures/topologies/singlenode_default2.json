@@ -2,27 +2,24 @@
   "id": "singlenode_default",
   "name": "singlenode_default",
   "version": "0.0.1",
-  "buildstamp": "Version: 0.0.1 Build: 0010003 Time: 2016-04-28T20:18:33.931Z",
-  "buildid": "0010003",
+  "buildstamp": "Version: 0.0.1 Build: 0010004 Time: 2016-04-28T20:20:33.931Z",
+  "buildid": "0010004",
   "strategy": "direct_to_node",
   "tags": [
 
   ],
-  "provisioning": {},
   "nodes": [
     {
       "name": "redlorry",
       "node_type": "appserver",
-      "tags": [
-
-      ],
+      "tags": [ "newtag" ],
       "normal": {
         "topo": {
           "node_type": "appserver",
           "name": "singlenode_default"
         },
         "topology-truck": {
-          "testinfo": "This is redlorry"
+          "testinfo": "This is redlorry 2"
         },
         "chef-vault": {
         	"databag_fallback": true

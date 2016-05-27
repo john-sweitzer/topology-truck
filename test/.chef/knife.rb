@@ -7,6 +7,7 @@ chef_server_url 'http://127.0.0.1:8889'
 # Copy key from delivery-cluster/.chef/delivery-cluster-data-test/delivery.pem
 client_key "#{current_dir}/dummy.pem"
 cookbook_path ["#{current_dir}/../cookbooks"]
+# data_bags_path ["#{current_dir}/../data_bags"]
 cache_options(:path => "#{current_dir}/.chef/checksums")
 
 # Copy certs from delivery-cluster/.chef/trusted_certs
