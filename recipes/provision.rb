@@ -76,10 +76,10 @@ debug_config = "log_level :info \n"\
 # and machine options that are to be used for this stage.
 # Start by using the stage driver which was specified either via a stage{ driver: xxx}
 #   or a propagated pipeline{ driver: xxx}.
-active_driver = tp_truck_parms.st_driver_type(stage) if tp_truck_parms.has_drivers?
+active_driver = tp_truck_parms.st_driver_type(stage) if tp_truck_parms.drivers?
 loaded_driver = '_none_'
 # TODO: Add logic to handle case in which driver is not specified...
-# use_tp_json_driver = true unless tp_truck_parms.has_drivers?
+# use_tp_json_driver = true unless tp_truck_parms.drivers?
 
 # Machine options will start with the template for the active driver...
 with_machine_options(tp_truck_parms.machine_options)
