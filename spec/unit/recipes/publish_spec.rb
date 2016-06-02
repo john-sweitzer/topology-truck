@@ -62,7 +62,7 @@ describe 'topology-truck::publish' do
       expect(TopologyTruck::Change).to receive(:new).and_return(topo_change)
       expect(chef_run).to run_execute(
         'publish topology topo1 to Chef Server').with(
-          command: 'knife topo import \"/tmp/repo/topologies/bp1/topo1.json\" '\
+          command: 'knife topo import "/tmp/repo/topologies/bp1/topo1.json" '\
             "#{config_args} && knife topo create topo1 --yes #{config_args}"
         )
     end

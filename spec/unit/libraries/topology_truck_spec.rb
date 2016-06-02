@@ -6,37 +6,37 @@
 
 require 'spec_helper'
 
-aws_machine_template = {:convergence_options=>{:bootstrap_proxy=>nil, :chef_config=>nil, :chef_version=>"12.8.1", :install_sh_path=>nil}, :bootstrap_options=>{:instance_type=>"t2.micro", :key_name=>nil, :security_group_ids=>["sg-ecaf5b89"], :subnet_id=>"subnet-bb898bcf"}, :ssh_username=>"ubuntu", :image_id=>nil, :use_private_ip_for_ssh=>false, :transport_address_location=>"public_ip"}
+aws_machine_template = { :convergence_options => { :bootstrap_proxy => nil, :chef_config => nil, :chef_version => '12.8.1', :install_sh_path => nil }, :bootstrap_options => { :instance_type => 't2.micro', :key_name => nil, :security_group_ids => ['sg-ecaf5b89'], :subnet_id => 'subnet-bb898bcf' }, :ssh_username => 'ubuntu', :image_id => nil, :use_private_ip_for_ssh => false, :transport_address_location => 'public_ip' }
 ssh_machine_template = { :convergence_options => { :bootstrap_proxy => nil, :chef_config => nil, :chef_version => '12.8.1', :install_sh_path => nil }, :transport_options => { :username => 'vagrant', :ssh_options => { :user => 'vagrant', :password => 'vagrant', :keys => [] }, :options => { :prefix => nil } } }
 
 describe TopologyTruck::ConfigParms do
-  let(:node) { 
+  let(:node) do
     l_node = Chef::Node.new
     # Machine options for aws across the pipeline
-   l_node.normal['topology-truck']['pipeline']['aws']['key_name'] = ENV['USER']
-   l_node.normal['topology-truck']['pipeline']['aws']['ssh_username']            = 'ubuntu'         # TODO: jws specific
-   l_node.normal['topology-truck']['pipeline']['aws']['security_group_ids']      = ['sg-ecaf5b89']  # TODO: jws specific
-   l_node.normal['topology-truck']['pipeline']['aws']['image_id']                = nil
-   l_node.normal['topology-truck']['pipeline']['aws']['instance_type']           = 't2.micro'       # TODO: jws specific
-   l_node.normal['topology-truck']['pipeline']['aws']['subnet_id']               = 'subnet-bb898bcf' # TODO: jws specific
-   l_node.normal['topology-truck']['pipeline']['aws']['bootstrap_proxy']         =
+    l_node.normal['topology-truck']['pipeline']['aws']['key_name'] = ENV['USER']
+    l_node.normal['topology-truck']['pipeline']['aws']['ssh_username']            = 'ubuntu'         # TODO: jws specific
+    l_node.normal['topology-truck']['pipeline']['aws']['security_group_ids']      = ['sg-ecaf5b89']  # TODO: jws specific
+    l_node.normal['topology-truck']['pipeline']['aws']['image_id']                = nil
+    l_node.normal['topology-truck']['pipeline']['aws']['instance_type']           = 't2.micro'       # TODO: jws specific
+    l_node.normal['topology-truck']['pipeline']['aws']['subnet_id']               = 'subnet-bb898bcf' # TODO: jws specific
+    l_node.normal['topology-truck']['pipeline']['aws']['bootstrap_proxy']         =
       ENV['HTTPS_PROXY'] || ENV['HTTP_PROXY']
-   l_node.normal['topology-truck']['pipeline']['aws']['chef_config']             = nil
-   l_node.normal['topology-truck']['pipeline']['aws']['chef_version']            = '12.8.1'          # TODO: jws specific
-   l_node.normal['topology-truck']['pipeline']['aws']['use_private_ip_for_ssh'] = false
+    l_node.normal['topology-truck']['pipeline']['aws']['chef_config']             = nil
+    l_node.normal['topology-truck']['pipeline']['aws']['chef_version']            = '12.8.1'          # TODO: jws specific
+    l_node.normal['topology-truck']['pipeline']['aws']['use_private_ip_for_ssh'] = false
     #
     # Machine options for ssh across the pipeline
-   l_node.normal['topology-truck']['pipeline']['ssh']['key_file']                = nil
-   l_node.normal['topology-truck']['pipeline']['ssh']['prefix']                  = nil
-   l_node.normal['topology-truck']['pipeline']['ssh']['ssh_username']            = 'vagrant'        # TODO: jws specific
-   l_node.normal['topology-truck']['pipeline']['ssh']['ssh_password']            = 'vagrant'        # TODO: jws specific
-   l_node.normal['topology-truck']['pipeline']['ssh']['bootstrap_proxy']         =
+    l_node.normal['topology-truck']['pipeline']['ssh']['key_file']                = nil
+    l_node.normal['topology-truck']['pipeline']['ssh']['prefix']                  = nil
+    l_node.normal['topology-truck']['pipeline']['ssh']['ssh_username']            = 'vagrant'        # TODO: jws specific
+    l_node.normal['topology-truck']['pipeline']['ssh']['ssh_password']            = 'vagrant'        # TODO: jws specific
+    l_node.normal['topology-truck']['pipeline']['ssh']['bootstrap_proxy']         =
       ENV['HTTPS_PROXY'] || ENV['HTTP_PROXY']
-   l_node.normal['topology-truck']['pipeline']['ssh']['chef_config']             = nil
-   l_node.normal['topology-truck']['pipeline']['ssh']['chef_version']            = '12.8.1'         # TODO: jws specific
-   l_node.normal['topology-truck']['pipeline']['ssh']['use_private_ip_for_ssh'] = false
+    l_node.normal['topology-truck']['pipeline']['ssh']['chef_config']             = nil
+    l_node.normal['topology-truck']['pipeline']['ssh']['chef_version']            = '12.8.1'         # TODO: jws specific
+    l_node.normal['topology-truck']['pipeline']['ssh']['use_private_ip_for_ssh'] = false
     l_node
-  }
+  end
 
   shared_examples_for 'Machine Options Examples' do
     context 'Check all the config.json options...' do
