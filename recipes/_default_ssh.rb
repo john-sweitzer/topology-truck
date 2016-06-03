@@ -12,7 +12,7 @@
 raw_data = {}
 raw_data['topology-truck'] = node['delivery']['config']['topology-truck']
 
-config = TopologyTruck::ConfigParms.new(raw_data.to_hash) if raw_data['topology-truck']
+config = TopologyTruck::ConfigParms.new(raw_data.to_hash, node) if raw_data['topology-truck']
 
 deliver_using_ssh = config.pl_driver_type == 'ssh' if config
 

@@ -11,6 +11,7 @@ debug_config = "log_level :info \n"\
 'verify_api_cert false'
 
 %w(acceptance union rehearsal delivered).each do |stage|
+  #
   default[project][stage]['ssh']['config'] = {
     machine_options:  {
       transport_options: {
@@ -27,39 +28,7 @@ debug_config = "log_level :info \n"\
     }
   }
   #
-  #
-  #
-  default[project][stage]['vagrant']['config'] = {
-    machine_options: {
-      vagrant_options: {
-      },
-      convergence_options: {
-        ssl_verify_mode: 'verify_none' #:verify_none
-      },
-      transport_address_location: 'private_ip' #:public_ip
-    }
 
-  }
-  #
-  #
-  #
-  default[project][stage]['aws']['config'] = {
-    machine_options: {
-      bootstrap_options: {
-        instance_type: 't2.micro',
-        security_group_ids: ['sg-ecaf5b89'],
-        subnet_id: 'subnet-bb898bcf'
-      },
-      convergence_options: {
-        ssl_verify_mode: 'verify_none' #:verify_none
-      },
-      image_id: 'ami-c94856a8',
-      ssh_username: 'ubuntu',
-      transport_address_location: 'public_ip' #:public_ip
-    }
-  }
-  #
-  #
   #
   default[project][stage]['topology'] =
     {
@@ -72,22 +41,22 @@ debug_config = "log_level :info \n"\
       tags: [],
       nodes: [
         {
-          name:  "#{stage}-#{project}",
-          node_type: 'SingleNode',
-          tags: [],
-          normal: {
-            topo: {
-              node_type: 'SingleNode',
-              name: "#{stage}-#{project}"
+          'name' => "#{stage}-#{project}",
+          'node_type' => 'SingleNode',
+          'tags' => [],
+          'normal' => {
+            'topo' => {
+              'node_type' => 'SingleNode',
+              'name' => "#{stage}-#{project}"
             },
-            yum: {
-              version: '3.2.20',
-              newattr: 'tracker'
+            'yum' => {
+              'version' => '3.2.20',
+              'newattr' => 'tracker'
             }
           },
-          run_list: ['recipe[yum::default]']
+          'run_list' => ['recipe[yum::default]']
         }
       ],
-      services: []
+      'services' => []
     }
 end

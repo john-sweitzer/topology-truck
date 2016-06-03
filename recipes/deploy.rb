@@ -18,7 +18,7 @@ stage = node['delivery']['change']['stage']
 
 raw_data = {}
 raw_data['topology-truck'] = node['delivery']['config']['topology-truck']
-tp_truck_parms = TopologyTruck::ConfigParms.new(raw_data.to_hash)
+tp_truck_parms = TopologyTruck::ConfigParms.new(raw_data.to_hash, node)
 
 # Decrypt the SSH private key Chef provisioning uses to connect to the
 # machine and save the key to disk when the driver is aws

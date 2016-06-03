@@ -61,33 +61,27 @@ class TopologyTruck
     end
     # CLASS METHOD - END...
 
-    def initialize(raw_data)
+    def initialize(raw_data, node)
       @raw_data = raw_data['topology-truck'] || raw_data['topology_truck'] || {}
-      @has_driver = false
+
+      initialize_instance_variables
+
+      prime_ssh_machine_parms(node)
+      prime_aws_machine_parms(node)
+
       capture_pipeline_details
       capture_stage_details
       capture_topology_details
-
-      set_ssh_machine_parms
-      set_aws_machine_parms
     end
 
-    def set_aws_machine_parms
-      # TODO: ############## Temporary code until we decide how to prime initial value
-      @instance_type = 't2.micro'
-      # @key_name,
-      @security_group_ids = ['sg-ecaf5b89']
-      @aws_ssh_user = 'ubuntu'
-      @image_id = 'ami-c94856a8'
-      # @use_private_ip_for_ssh
-      @subnet_id = 'subnet-bb898bcf'
-    end
-
-    def set_ssh_machine_parms
-      # TODO: ############## Temporary code until we decide how to prime initial value
-      @ssh_user = 'vagrant'
-      @ssh_user_pwd = 'vagrant'
-      @chef_version = '12.8.1'
+    # ...
+    def initialize_instance_variables
+      @has_driver = false
+      @has_st_driver = false
+      @has_pl_driver = false
+      @any_aws_drivers = false
+      @any_ssh_drivers = false
+      @tp_map = {}
     end
 
     # Extract the pipeline options from the config.json details
@@ -128,10 +122,10 @@ class TopologyTruck
     def capture_stage_details
       clause = @raw_data['stages']
       @st_level = true if clause
-      capture_stage_topology_details(clause)
       capture_stage_driver_details(clause)
       capture_stage_driver_type_details(clause)
       capture_stage_machine_options(clause)
+      capture_stage_topology_details(clause)
     end
 
     def capture_stage_topology_details(clause)
@@ -146,7 +140,28 @@ class TopologyTruck
     def extract_topology(clause, stage)
       return [] unless clause
       return [] unless clause[stage]
-      clause[stage]['topologies'] || []
+      list = clause[stage]['topologies'] || []
+      list.each do |tp|
+        construct_topology(tp, stage)
+      end
+      list
+    end
+
+    def construct_topology(tp, stage)
+      drv = tp ['driver'] || st_driver(stage)
+      #
+      drvt = drv.split(':', 2)[0]
+      #
+      mo = calculate_topology_machine_options(tp, stage)
+      #
+      @tp_map[tp] = { 'driver' => drv, 'driver_type' => drvt, 'machine_options' => mo }
+    end
+
+    def calculate_topology_machine_options(tp, stage)
+      # TODO: Calculate the mo for the topology...
+      mo = tp['machine_options'] || st_machine_options(stage)
+      mo = machine_options if mo == {}
+      mo
     end
 
     def capture_stage_driver_details(clause)
@@ -160,7 +175,7 @@ class TopologyTruck
       # use pipeline driver details if there are no stage level details...
       return @pl_driver unless clause
       return @pl_driver unless clause[stage]
-      return @pl_driver_type unless clause[stage]['driver']
+      return @pl_driver unless clause[stage]['driver']
       # we have stage level driver details...
       @has_st_driver = true
       clause[stage]['driver']
@@ -178,6 +193,7 @@ class TopologyTruck
       return @pl_driver_type unless clause
       return @pl_driver_type unless clause[stage]
       return @pl_driver_type unless clause[stage]['driver']
+
       # we have stage level driver details...
       temp = clause[stage]['driver'].split(':', 2)[0]
       @any_aws_drivers = true if temp == 'aws'
@@ -209,11 +225,11 @@ class TopologyTruck
     end
 
     # @returns machine option template based on driver type...
-    # Templates are derived from patterns in Chef's Delivery-Cluster cookbook...
+    # Templates are derived from patterns in Chef's Delivery-Cluster cook book...
     def extract_machine_options_list(opt_hash)
       list = []
-      list = aws_machine_options_list(opt_hash) if pl_driver_type == 'aws'
-      list = ssh_machine_options_list(opt_hash) if pl_driver_type == 'ssh'
+      list = aws_machine_options_list(opt_hash) if @pl_driver_type == 'aws'
+      list = ssh_machine_options_list(opt_hash) if @pl_driver_type == 'ssh'
       list
     end
 
@@ -303,8 +319,8 @@ class TopologyTruck
     # @returns machine option template based on driver type...
     # Templates are derived from patterns in Chef's Delivery-Cluster cookbook...
     def machine_options
-      master_template = aws_template if pl_driver_type == 'aws'
-      master_template = ssh_template if pl_driver_type == 'ssh'
+      master_template = aws_template if @pl_driver_type == 'aws'
+      master_template = ssh_template if @pl_driver_type == 'ssh'
       master_template || {}
     end
 
@@ -317,8 +333,8 @@ class TopologyTruck
       master_template = {
         convergence_options: {
           bootstrap_proxy: @bootstrap_proxy,
-          chef_config: @chef_config,
-          chef_version: @chef_version,
+          chef_config: @chef_config_ssh,
+          chef_version: @chef_version_ssh,
           install_sh_path: @install_sh_path
         },
         transport_options: {
@@ -341,8 +357,8 @@ class TopologyTruck
       master_template = {
         convergence_options: {
           bootstrap_proxy: @bootstrap_proxy,
-          chef_config: @chef_config,
-          chef_version: @chef_version,
+          chef_config: @chef_config_aws,
+          chef_version: @chef_version_aws,
           install_sh_path: @install_sh_path
         },
         bootstrap_options: {
@@ -350,7 +366,7 @@ class TopologyTruck
           key_name:           @key_name,
           security_group_ids: @security_group_ids
         },
-        ssh_username:           @aws_ssh_user,
+        ssh_username:           @ssh_user_aws,
         image_id:               @image_id,
         use_private_ip_for_ssh: @use_private_ip_for_ssh,
         transport_address_location: 'public_ip' #:public_ip
@@ -366,20 +382,57 @@ class TopologyTruck
     end
     # rubocop:enable MethodLength
 
+    def prime_aws_machine_parms(node)
+      # TODO: ############## Need to finish priming variables...
+      # @key_name               = node['topology-truck']['pipeline']['aws']['key_name']
+      @ssh_user_aws           = node['topology-truck']['pipeline']['aws']['ssh_username']
+      @security_group_ids     = node['topology-truck']['pipeline']['aws']['security_group_ids']
+      @image_id               = node['topology-truck']['pipeline']['aws']['image_id']
+      @instance_type          = node['topology-truck']['pipeline']['aws']['instance_type']
+      @subnet_id              = node['topology-truck']['pipeline']['aws']['subnet_id']
+      # @                       = node['topology-truck']['pipeline']['aws']['bootstrap_proxy']
+      # @chef_config_aws        = node['topology-truck']['pipeline']['aws']['chef_config']
+      @chef_version_aws       = node['topology-truck']['pipeline']['aws']['chef_version']
+      @use_private_ip_for_ssh = node['topology-truck']['pipeline']['aws']['use_private_ip_for_ssh']
+    end
+
+    def prime_ssh_machine_parms(node)
+      # TODO: ############## need to finish priming variables...
+      # @                       = node['topology-truck']['pipeline']['ssh']['key_file']
+      # @                       = node['topology-truck']['pipeline']['ssh']['prefix']
+      @ssh_user               = node['topology-truck']['pipeline']['ssh']['ssh_username']
+      @ssh_user_pwd           = node['topology-truck']['pipeline']['ssh']['ssh_password']
+      # @                       = node['topology-truck']['pipeline']['ssh']['bootstrap_proxy']
+      # @chef_config_ssh        = node['topology-truck']['pipeline']['ssh']['chef_config']
+      @chef_version_ssh       = node['topology-truck']['pipeline']['ssh']['chef_version']
+      @use_private_ip_for_ssh = node['topology-truck']['pipeline']['ssh']['use_private_ip_for_ssh']
+    end
+    # rubocop:enable AbcSize
+
     def drivers?
       @pl_driver || @st_driver || @tp_driver
     end
 
-    # Return true is 'aws" was specified at pl, st, or tp levels
+    # Return true is 'aws' was specified at pl, st, or tp levels
     def any_aws_drivers?
       return false unless @any_aws_drivers
       @any_aws_drivers
     end
 
-    # Return true if 'ssh" was specified at pl, st, or tp levels
+    # Return true if 'ssh' was specified at pl, st, or tp levels
     def any_ssh_drivers?
       return false unless @any_ssh_drivers
       @any_ssh_drivers
+    end
+
+    # Return true if 'ssh' or 'aws' was specified at pl, st, or tp levels
+    def any_drivers?
+      @any_ssh_drivers || @any_aws_drivers
+    end
+
+    # Return true if any machine options are specified at the pl, st, or tp levels
+    def any_machine_options?
+      @any_ssh_drivers || @any_aws_drivers
     end
 
     def pl_level?
@@ -450,18 +503,12 @@ class TopologyTruck
     end
 
     def tp_driver(tp)
-      return { 'none_specified' => true } if tp == 'acceptance'
-      return { 'none_specified' => true } if tp == 'union'
-      return { 'none_specified' => true } if tp == 'rehearsal'
-      return { 'none_specified' => true } if tp == 'delivered'
+      return @tp_map[tp]['driver'] if @tp_map[tp]['driver']
       { 'none_specified' => true }
     end
 
     def tp_driver_type(tp)
-      return { 'none_specified' => true } if tp == 'acceptance'
-      return { 'none_specified' => true } if tp == 'union'
-      return { 'none_specified' => true } if tp == 'rehearsal'
-      return { 'none_specified' => true } if tp == 'delivered'
+      return @tp_map[tp]['driver_type'] if @tp_map[tp]['driver_type']
       { 'none_specified' => true }
     end
 
@@ -474,21 +521,13 @@ class TopologyTruck
     end
 
     def tp_machine_options(tp)
-      return { :bootstrap_options => { :instance_type => 'INSTANCE_TYPE', :key_name => 'KEY_NAME', :security_group_ids => 'SECURITY_GROUP_IDS' } } if tp == 'test'
-
+      return { :bootstrap_options => { :instance_type => 'INSTANCE_TYPE', :key_name => 'KEY_NAME', :security_group_ids => 'SECURITY_GROUP_IDS' } } unless @tp_map[tp]
+      return @tp_map[tp]['machine_options'] if @tp_map[tp]['machine_options']
       { 'none_specified' => true }
     end
 
     def tp_calc_machine_options(_tp)
       pl_machine_options
-    end
-
-    def tp_topologies(st)
-      return @acceptance_topologies if st == 'acceptance'
-      return @union_topologies      if st == 'union'
-      return @rehearsal_topologies  if st == 'rehearsal'
-      return @delivered_topologies  if st == 'delivered'
-      [{ 'none_specified_for_stage' => st }]
     end
   end
 end

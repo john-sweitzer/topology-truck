@@ -14,7 +14,7 @@ stage = node['delivery']['change']['stage']
 raw_data = {}
 raw_data['topology-truck'] = node['delivery']['config']['topology-truck']
 
-tp_truck_parms = TopologyTruck::ConfigParms.new(raw_data.to_hash)
+tp_truck_parms = TopologyTruck::ConfigParms.new(raw_data.to_hash, node)
 
 Chef::Log.warn(
   "topology-truck hash.........  #{raw_data}")
@@ -68,8 +68,6 @@ if tp_truck_parms.tp_level?
       "topology.machine_options....  #{tp_truck_parms.tp_machine_options(tp_name)}")
     Chef::Log.warn(
       "topology.calc_machine_opts..  #{tp_truck_parms.tp_calc_machine_options(tp_name)}")
-    Chef::Log.warn(
-      "topology.topologies.........  #{tp_truck_parms.tp_topologies(tp_name)}")
   end
 else
   Chef::Log.warn(
