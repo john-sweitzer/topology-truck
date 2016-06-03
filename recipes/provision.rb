@@ -59,20 +59,20 @@ with_server_config do
 end
 
 # When topology_list is still empty use the sample topology JSON
-if topology_list.empty?
-  tp_nm = node[project][stage]['topology']['name']
-  tp = Topo::Topology.new(tp_nm, node.default[project][stage]['topology'].clone)
-  if tp
-    topology_list.push(tp)
-    Chef::Log.warn(
-      "Note: There are no topologies specified for the #{stage} stage so the details in the cook book attributes are being used."
-    )
-  else
-    Chef::Log.warn(
-      "Unable to use the topology json in the attributes for the cook book at node[#{project}][#{stage}][''topology'']"
-    )
-  end
-end
+# if topology_list.empty?
+#  tp_nm = node[project][stage]['topology']['name']
+#  tp = Topo::Topology.new(tp_nm, node.default[project][stage]['topology'].clone)
+#  if tp
+#    topology_list.push(tp)
+#    Chef::Log.warn(
+#      "Note: There are no topologies specified for the #{stage} stage so the details in the cook book attributes are being used."
+#    )
+#  else
+#    Chef::Log.warn(
+#      "Unable to use the topology json in the attributes for the cook book at node[#{project}][#{stage}][''topology'']"
+#    )
+#  end
+# end
 
 # TODO: any_aws need to include tp.json content when none in config.json
 # For AWS driver: Decrypt the SSH private key Chef provisioning uses to connect to the
