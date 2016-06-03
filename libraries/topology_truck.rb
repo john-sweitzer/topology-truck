@@ -490,10 +490,13 @@ class TopologyTruck
     end
 
     def st_topologies(st)
+      return []                     if st == 'verify'
+      return []                     if st == 'build'
       return @acceptance_topologies if st == 'acceptance'
       return @union_topologies      if st == 'union'
-      return @rehearsal_topologies if st == 'rehearsal'
-      return @delivered_topologies if st == 'delivered'
+      return @rehearsal_topologies  if st == 'rehearsal'
+      return @delivered_topologies  if st == 'delivered'
+
       [{ 'none_specified_for_stage' => st }]
     end
 
