@@ -515,22 +515,10 @@ class TopologyTruck
       { 'none_specified' => true }
     end
 
-    def tp_has_drivers?(_tp)
-      false
-    end
-
-    def tp_calc_driver_type(_tp)
-      pl_driver
-    end
-
     def tp_machine_options(tp)
       return { :bootstrap_options => { :instance_type => 'INSTANCE_TYPE', :key_name => 'KEY_NAME', :security_group_ids => 'SECURITY_GROUP_IDS' } } unless @tp_map[tp]
       return @tp_map[tp]['machine_options'] if @tp_map[tp]['machine_options']
       { 'none_specified' => true }
-    end
-
-    def tp_calc_machine_options(_tp)
-      pl_machine_options
     end
   end
 end

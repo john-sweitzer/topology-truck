@@ -46,6 +46,22 @@ class Topo
                     end
     end
 
+    # TODO: Need to implement these three functions....
+    # Returns true when the node details include provisioning info...
+    def drivers?
+      false
+    end
+
+    # Returns true when the node details include provisioning info...
+    def drivers_type
+      '_not_implemented_yet'
+    end
+
+    # Returns true when the node details include provisioning info...
+    def machine_options
+      '_not_implemented_yet'
+    end
+
     def machine_options_list(driver) # JWS add
       list = [] if driver == 'aws'
       list = [] if driver == 'ssh'

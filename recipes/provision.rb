@@ -11,7 +11,7 @@
 include_recipe 'chef-sugar'
 
 # Local variable for cleaner code...
-project = node['delivery']['change']['project']
+# project = node['delivery']['change']['project']
 stage = node['delivery']['change']['stage']
 
 # ...at this point no driver has been loaded...
@@ -53,7 +53,7 @@ with_server_config do
     else
       Chef::Log.warn(
         "Unable to fetch topology #{tp_name} from the #{delivery_chef_server[:chef_server_url]} so skipping ( #{stage} )."
-      ) unless tp_truck_parms.drivers?
+      )
     end
   end
 end
@@ -117,11 +117,17 @@ topology_list.each do |topology|
     # Keep track of the node names for reporting purposes...
     nodes << node_details.name
 
+    # When the nodes has driver/machine option details lets use them
+    if nodes.drivers?
+      active_driver = nodes.driver_type
+      with_machine_options(nodes.machine_options)
+    end
+
     # Initialize the provisioning driver after loading it..
     require 'chef/provisioning/ssh_driver'      if active_driver == 'ssh' && loaded_driver != 'ssh'
     require 'chef/provisioning/aws_driver'      if active_driver == 'aws' && loaded_driver != 'aws'
 
-    with_driver tp_truck_parms.pl_driver unless active_driver == loaded_driver
+    with_driver tp_truck_parms.tp_driver(tp_name) unless active_driver == loaded_driver
 
     loaded_driver = active_driver
 

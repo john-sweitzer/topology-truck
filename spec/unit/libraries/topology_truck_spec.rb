@@ -101,11 +101,11 @@ describe TopologyTruck::ConfigParms do
       end
 
       it 'st_topologies(verify)' do
-        expect(tp_trk_parms.st_topologies('verify')).to eql([{ 'none_specified_for_stage' => 'verify' }])
+        expect(tp_trk_parms.st_topologies('verify')).to eql([])
       end
 
       it 'st_topologies(build)' do
-        expect(tp_trk_parms.st_topologies('build')).to eql([{ 'none_specified_for_stage' => 'build' }])
+        expect(tp_trk_parms.st_topologies('build')).to eql([])
       end
 
       it 'st_topologies(acceptance)' do

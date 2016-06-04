@@ -63,11 +63,7 @@ if tp_truck_parms.tp_level?
     Chef::Log.warn(
       "topology.driver_type........  #{tp_truck_parms.tp_driver_type(tp_name)}")
     Chef::Log.warn(
-      "topology.calc_driver_type...  #{tp_truck_parms.tp_calc_driver_type(tp_name)}")
-    Chef::Log.warn(
       "topology.machine_options....  #{tp_truck_parms.tp_machine_options(tp_name)}")
-    Chef::Log.warn(
-      "topology.calc_machine_opts..  #{tp_truck_parms.tp_calc_machine_options(tp_name)}")
   end
 else
   Chef::Log.warn(
