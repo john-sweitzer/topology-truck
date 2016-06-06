@@ -84,7 +84,7 @@ describe TopologyTruck::ConfigParms do
         expect(tp_trk_parms.tp_level?).to eql(tp_level)
       end
 
-      it 'check for aws driver at pipeline level [pl_driver]' do
+      it 'check for driver at pipeline level [pl_driver]' do
         expect(tp_trk_parms.pl_driver).to eql(driver)
       end
 
