@@ -25,12 +25,17 @@ require_relative './node'
 class TopologyTruck
   # Handle config.json for topology-truck
   class ConfigParms
+    # TODO: Should these be class or instance variables?
+    # CLASS Variables - START
+
     @stage_topologies = {}
     @topos = {}
     @ssh_private_key_path = nil
     @ssh_key = nil
     @any_ssh_drivers = false
     @any_aws_drivers = false
+
+    # CLASS Variables - End
 
     # CLASS METHODS - START..
 
@@ -64,11 +69,15 @@ class TopologyTruck
     def initialize(raw_data, node)
       @raw_data = raw_data['topology-truck'] || raw_data['topology_truck'] || {}
 
+      # There are global variables for an instance of this class
       initialize_instance_variables
 
+      # Load 'machine_options' attributes into local variables so they can be
+      # used as defaults in the machine_options templates...
       prime_ssh_machine_parms(node)
       prime_aws_machine_parms(node)
 
+      # Capture details move from the most global to the most local..,
       capture_pipeline_details
       capture_stage_details
       capture_topology_details
@@ -76,6 +85,7 @@ class TopologyTruck
 
     # ...
     def initialize_instance_variables
+      @pl_level = false
       @has_driver = false
       @has_st_driver = false
       @has_pl_driver = false
@@ -94,20 +104,22 @@ class TopologyTruck
     end
 
     def capture_pipeline_driver(clause)
-      @pl_driver = '_unspecified_' unless clause
-      unless @pl_driver == '_unspecified_'
+      if clause
         @pl_driver = clause['driver'] || '_unspecified_'
         @has_pl_driver = true if clause['driver']
+      else
+        @pl_driver = '_unspecified_'
       end
     end
 
     def capture_pipeline_driver_type(clause)
-      @pl_driver_type = '_unspecified_' unless clause
-      unless @pl_driver_type == '_unspecified_'
+      if clause
         temp = clause['driver'] || '_unspecified_'
         @pl_driver_type = temp.split(':', 2)[0]
         @any_aws_drivers = true if @pl_driver_type == 'aws'
         @any_ssh_drivers = true if @pl_driver_type == 'ssh'
+      else
+        @pl_driver_type = '_unspecified_'
       end
     end
 
@@ -148,20 +160,38 @@ class TopologyTruck
     end
 
     def construct_topology(tp, stage)
-      drv = tp ['driver'] || st_driver(stage)
       #
+      drv = st_driver(stage)
       drvt = drv.split(':', 2)[0]
       #
-      mo = calculate_topology_machine_options(tp, stage)
+      mo = calculate_topology_machine_options(drvt, stage)
       #
-      @tp_map[tp] = { 'driver' => drv, 'driver_type' => drvt, 'machine_options' => mo }
+      @tp_map[tp] = { 'stage' => stage, 'driver' => drv, 'driver_type' => drvt, 'machine_options' => mo }
     end
 
-    def calculate_topology_machine_options(tp, stage)
-      # TODO: Calculate the mo for the topology...
-      mo = tp['machine_options'] || st_machine_options(stage)
-      mo = machine_options if mo == {}
+    def calculate_topology_machine_options(drvt, stage)
+      # start with the template for the current driver...
+      mo = machine_options_template(drvt)
+      # add details supplied at the pl, st, and tp levels
+      mo = add_machine_options(mo, @pl_machine_options, drvt) if @pl_driver_type == drvt
+      mo = add_machine_options(mo, st_machine_options(stage), drvt) if st_driver_type(stage) == drvt
       mo
+    end
+
+    def add_machine_options(mo1, mo2, drvt)
+      #
+      list = []
+      list = aws_machine_options_list(mo2) if drvt == 'aws'
+      list = ssh_machine_options_list(mo2) if drvt == 'ssh'
+      mo_template = mo1.clone
+      #
+      list.each do |item|
+        # Add any optional machine options
+        require 'chef/mixin/deep_merge'
+        mo_template = Chef::Mixin::DeepMerge.hash_only_merge(mo_template, item)
+        mo_template
+      end
+      mo_template
     end
 
     def capture_stage_driver_details(clause)
@@ -209,10 +239,10 @@ class TopologyTruck
     end
 
     def extract_machine_options(clause, stage)
-      return @pl_machine_options unless clause
-      return @pl_machine_options unless clause[stage]
-      return @pl_machine_options unless clause[stage]['machine_options']
-      clause[stage]['machine_options'] || {}
+      return {} unless clause
+      return {} unless clause[stage]
+      return {} unless clause[stage]['machine_options']
+      clause[stage]['machine_options']
     end
 
     #
@@ -222,6 +252,33 @@ class TopologyTruck
       # Do we have topologies detail...
       clause = @raw_data['topologies']
       @tp_level = true if clause
+      #
+      clause.each do |tp_name, body|
+        construct_tp_topology(tp_name, body)
+      end if clause
+    end
+
+    def construct_tp_topology(tp_name, body)
+      #
+      Chef::Log.warn("The topology #{tp_name} must have a { stage => x } hash to be considered.") unless body['stage']
+      stage = body['stage']   || '_missing_stage_'
+      drv   = body['driver']  || st_driver(stage)
+      drvt = drv.split(':', 2)[0]
+      tp_mo = body['machine_options'] || {}
+      #
+      mo = calculate_tp_topology_machine_options(tp_mo, drvt, stage)
+      #
+      @tp_map[tp_name] = { 'stage' => stage, 'driver' => drv, 'driver_type' => drvt, 'machine_options' => mo } unless stage == '_missing_stage_'
+    end
+
+    def calculate_tp_topology_machine_options(tp_mo, drvt, stage)
+      # start with the template for the current driver...
+      mo = machine_options_template(drvt)
+      # add details supplied at the pl, st, and tp levels
+      mo = add_machine_options(mo, @pl_machine_options, drvt) if @pl_driver_type == drvt
+      mo = add_machine_options(mo, st_machine_options(stage), drvt) if st_driver_type(stage) == drvt
+      mo = add_machine_options(mo, tp_mo, drvt)
+      mo
     end
 
     # @returns machine option template based on driver type...
@@ -240,36 +297,36 @@ class TopologyTruck
     # @returns list of machine options found in the hash
     def aws_machine_options_list(opt_hash)
       list = []
-      if opt_hash['convergence_options']
-        if opt_hash['convergence_options']['bootstrap_proxy']
-          list << { convergence_options: { bootstrap_proxy: opt_hash['convergence_options']['bootstrap_proxy'] } }
+      if opt_hash[:convergence_options]
+        if opt_hash[:convergence_options][:bootstrap_proxy]
+          list << { convergence_options: { bootstrap_proxy: opt_hash[:convergence_options][:bootstrap_proxy] } }
         end
-        if opt_hash['convergence_options']['chef_config']
-          list << { convergence_options: { chef_config: opt_hash['convergence_options']['chef_config'] } }
+        if opt_hash[:convergence_options][:chef_config]
+          list << { convergence_options: { chef_config: opt_hash[:convergence_options][:chef_config] } }
         end
-        if opt_hash['convergence_options']['chef_version']
-          list << { convergence_options: { chef_version: opt_hash['convergence_options']['chef_version'] } }
+        if opt_hash[:convergence_options][:chef_version]
+          list << { convergence_options: { chef_version: opt_hash[:convergence_options][:chef_version] } }
         end
-        if opt_hash['convergence_options']['install_sh_path']
-          list << { convergence_options: { install_sh_path: opt_hash['convergence_options']['install_sh_path'] } }
+        if opt_hash[:convergence_options][:install_sh_path]
+          list << { convergence_options: { install_sh_path: opt_hash[:convergence_options][:install_sh_path] } }
         end
       end
-      if opt_hash['bootstrap_options']
-        if opt_hash['bootstrap_options']['instance_type']
-          list << { bootstrap_options: { instance_type: opt_hash['bootstrap_options']['instance_type'] } }
+      if opt_hash[:bootstrap_options]
+        if opt_hash[:bootstrap_options][:instance_type]
+          list << { bootstrap_options: { instance_type: opt_hash[:bootstrap_options][:instance_type] } }
         end
-        if opt_hash['bootstrap_options']['key_name']
-          list << { bootstrap_options: { key_name: opt_hash['bootstrap_options']['key_name'] } }
+        if opt_hash[:bootstrap_options][:key_name]
+          list << { bootstrap_options: { key_name: opt_hash[:bootstrap_options][:key_name] } }
         end
-        if opt_hash['bootstrap_options']['security_group_ids']
-          list << { bootstrap_options: { security_group_id: opt_hash['bootstrap_options']['security_group_id'] } }
+        if opt_hash[:bootstrap_options][:security_group_ids]
+          list << { bootstrap_options: { security_group_id: opt_hash[:bootstrap_options][:security_group_id] } }
         end
       end
 
-      list << { ssh_username: opt_hash['ssh_username'] }                             if opt_hash['ssh_username']
-      list << { image_id: opt_hash['image_id'] }                                     if opt_hash['image_id']
-      list << { use_private_ip_for_ssh: opt_hash['use_private_ip_for_ssh'] }         if opt_hash['use_private_ip_for_ssh']
-      list << { transport_address_location: opt_hash['transport_address_location'] } if opt_hash['transport_address_location']
+      list << { ssh_username: opt_hash[:ssh_username] }                             if opt_hash[:ssh_username]
+      list << { image_id: opt_hash[:image_id] }                                     if opt_hash[:image_id]
+      list << { use_private_ip_for_ssh: opt_hash[:use_private_ip_for_ssh] }         if opt_hash[:use_private_ip_for_ssh]
+      list << { transport_address_location: opt_hash[:transport_address_location] } if opt_hash[:transport_address_location]
 
       list
     end
@@ -324,8 +381,10 @@ class TopologyTruck
       master_template || {}
     end
 
-    def machine_options_template
-      machine_options
+    def machine_options_template(drv)
+      template = aws_template if drv == 'aws'
+      template = ssh_template if drv == 'ssh'
+      template || {}
     end
 
     # rubocop:disable MethodLength
@@ -516,7 +575,7 @@ class TopologyTruck
     end
 
     def tp_machine_options(tp)
-      return { :bootstrap_options => { :instance_type => 'INSTANCE_TYPE', :key_name => 'KEY_NAME', :security_group_ids => 'SECURITY_GROUP_IDS' } } unless @tp_map[tp]
+      return { :bootstrap_options => { :security_group_ids => 'TOPOLOGY_TEST_SECURITY_GROUP_ID' } } unless @tp_map[tp]
       return @tp_map[tp]['machine_options'] if @tp_map[tp]['machine_options']
       { 'none_specified' => true }
     end

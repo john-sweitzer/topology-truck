@@ -6,7 +6,7 @@
 
 require 'spec_helper'
 
-aws_machine_template = { :convergence_options => { :bootstrap_proxy => nil, :chef_config => nil, :chef_version => '12.8.1', :install_sh_path => nil }, :bootstrap_options => { :instance_type => 't2.micro', :key_name => nil, :security_group_ids => ['sg-ecaf5b89'], :subnet_id => 'subnet-bb898bcf' }, :ssh_username => 'ubuntu', :image_id => nil, :use_private_ip_for_ssh => false, :transport_address_location => 'public_ip' }
+aws_machine_template = { :convergence_options => { :bootstrap_proxy => nil, :chef_config => nil, :chef_version => '12.8.1', :install_sh_path => nil }, :bootstrap_options => { :instance_type => 'instance.type.p', :key_name => nil, :security_group_ids => ['security-group-id-p'], :subnet_id => 'subnet_id_p' }, :ssh_username => 'ssh_username_p', :image_id => nil, :use_private_ip_for_ssh => false, :transport_address_location => 'public_ip' }
 ssh_machine_template = { :convergence_options => { :bootstrap_proxy => nil, :chef_config => nil, :chef_version => '12.8.1', :install_sh_path => nil }, :transport_options => { :username => 'vagrant', :ssh_options => { :user => 'vagrant', :password => 'vagrant', :keys => [] }, :options => { :prefix => nil } } }
 
 describe TopologyTruck::ConfigParms do
@@ -14,26 +14,26 @@ describe TopologyTruck::ConfigParms do
     l_node = Chef::Node.new
     # Machine options for aws across the pipeline
     l_node.normal['topology-truck']['pipeline']['aws']['key_name'] = ENV['USER']
-    l_node.normal['topology-truck']['pipeline']['aws']['ssh_username']            = 'ubuntu'         # TODO: jws specific
-    l_node.normal['topology-truck']['pipeline']['aws']['security_group_ids']      = ['sg-ecaf5b89']  # TODO: jws specific
+    l_node.normal['topology-truck']['pipeline']['aws']['ssh_username']            = 'ssh_username_p'
+    l_node.normal['topology-truck']['pipeline']['aws']['security_group_ids']      = ['security-group-id-p']
     l_node.normal['topology-truck']['pipeline']['aws']['image_id']                = nil
-    l_node.normal['topology-truck']['pipeline']['aws']['instance_type']           = 't2.micro'       # TODO: jws specific
-    l_node.normal['topology-truck']['pipeline']['aws']['subnet_id']               = 'subnet-bb898bcf' # TODO: jws specific
+    l_node.normal['topology-truck']['pipeline']['aws']['instance_type']           = 'instance.type.p'
+    l_node.normal['topology-truck']['pipeline']['aws']['subnet_id']               = 'subnet_id_p'
     l_node.normal['topology-truck']['pipeline']['aws']['bootstrap_proxy']         =
       ENV['HTTPS_PROXY'] || ENV['HTTP_PROXY']
     l_node.normal['topology-truck']['pipeline']['aws']['chef_config']             = nil
-    l_node.normal['topology-truck']['pipeline']['aws']['chef_version']            = '12.8.1'          # TODO: jws specific
+    l_node.normal['topology-truck']['pipeline']['aws']['chef_version']            = '12.8.1'
     l_node.normal['topology-truck']['pipeline']['aws']['use_private_ip_for_ssh'] = false
     #
     # Machine options for ssh across the pipeline
     l_node.normal['topology-truck']['pipeline']['ssh']['key_file']                = nil
     l_node.normal['topology-truck']['pipeline']['ssh']['prefix']                  = nil
-    l_node.normal['topology-truck']['pipeline']['ssh']['ssh_username']            = 'vagrant'        # TODO: jws specific
-    l_node.normal['topology-truck']['pipeline']['ssh']['ssh_password']            = 'vagrant'        # TODO: jws specific
+    l_node.normal['topology-truck']['pipeline']['ssh']['ssh_username']            = 'vagrant'
+    l_node.normal['topology-truck']['pipeline']['ssh']['ssh_password']            = 'vagrant'
     l_node.normal['topology-truck']['pipeline']['ssh']['bootstrap_proxy']         =
       ENV['HTTPS_PROXY'] || ENV['HTTP_PROXY']
     l_node.normal['topology-truck']['pipeline']['ssh']['chef_config']             = nil
-    l_node.normal['topology-truck']['pipeline']['ssh']['chef_version']            = '12.8.1'         # TODO: jws specific
+    l_node.normal['topology-truck']['pipeline']['ssh']['chef_version']            = '12.8.1'
     l_node.normal['topology-truck']['pipeline']['ssh']['use_private_ip_for_ssh'] = false
     l_node
   end
@@ -65,7 +65,7 @@ describe TopologyTruck::ConfigParms do
       end
 
       it 'tp_machine_options' do
-        expect(tp_trk_parms.tp_machine_options('test')).to eql(tp_machine_options)
+        expect(tp_trk_parms.tp_machine_options('_test_')).to eql(tp_machine_options)
       end
     end
   end
@@ -445,6 +445,7 @@ describe TopologyTruck::ConfigParms do
         },
         'topologies' => {
           'test' => {
+            'stage' => 'delivered',
             'driver' => 'ssh',
             'machine_options' => {
               bootstrap_options: {
@@ -466,7 +467,69 @@ describe TopologyTruck::ConfigParms do
     let(:template_mach_opts) { aws_machine_template }
     let(:pl_machine_options) { { :bootstrap_options => { :instance_type => 'INSTANCE_TYPE', :key_name => 'KEY_NAME', :security_group_ids => 'SECURITY_GROUP_IDS' } } }
     let(:st_machine_options) { { :bootstrap_options => { :instance_type => 'ACCEPT_INSTANCE_TYPE', :key_name => 'ACCEPT_KEY_NAME', :security_group_ids => 'ACCEPT_SECURITY_GROUP_IDS' } } }
-    let(:tp_machine_options) { { :bootstrap_options => { :instance_type => 'INSTANCE_TYPE', :key_name => 'KEY_NAME', :security_group_ids => 'SECURITY_GROUP_IDS' } } }
+    let(:tp_machine_options) { { :bootstrap_options => { :security_group_ids => 'TOPOLOGY_TEST_SECURITY_GROUP_ID' } } }
+    let(:tp_trk_parms) { TopologyTruck::ConfigParms.new(raw_data, node) }
+
+    it_behaves_like 'Machine Options Examples'
+  end
+
+  describe 'Add machine options for pl st and tp' do
+    raw_data = {
+      'topology-truck' => {
+        'pipeline' => {
+          'driver' => 'aws',
+          'machine_options' => {
+            bootstrap_options: {
+              instance_type:      'PIPELINE_INSTANCE_TYPE'
+            }
+          }
+        },
+        'stages' => {
+          'acceptance' => {
+            'topologies' => ['tp_a'],
+            'driver' => 'aws',
+            'machine_options' => {
+              bootstrap_options: {
+                key_name:           'STAGE_ACCEPT_KEY_NAME'
+              }
+            }
+          },
+          'union' => {
+            'topologies' => ['tp_u'],
+            'driver' => 'aws'
+          },
+          'rehearsal' => {
+            'topologies' => ['tp_r'],
+            'driver' => 'ssh'
+          },
+          'delivered' => {
+            'topologies' => ['tp_d'],
+            'driver' => 'aws'
+          }
+        },
+        'topologies' => {
+          'another' => {
+            'stage' => 'acceptance',
+            'driver' => 'aws',
+            'machine_options' => {
+              convergence_options: {
+                chef_config: 'TOPOLOGY_TEST_CHEF_CONFIG'
+              }
+            }
+          }
+        }
+      }
+    }
+
+    let(:pl_level) { true }
+    let(:st_level) { true }
+    let(:tp_level) { true }
+    let(:driver) { 'aws' }
+    let(:driver_type) { 'aws' }
+    let(:template_mach_opts) { aws_machine_template }
+    let(:pl_machine_options) { { :bootstrap_options => { :instance_type => 'PIPELINE_INSTANCE_TYPE' } } }
+    let(:st_machine_options) { { :bootstrap_options => { :key_name => 'STAGE_ACCEPT_KEY_NAME' } } }
+    let(:tp_machine_options) { { :bootstrap_options => { :security_group_ids => 'TOPOLOGY_TEST_SECURITY_GROUP_ID' } } }
 
     let(:tp_trk_parms) { TopologyTruck::ConfigParms.new(raw_data, node) }
 
