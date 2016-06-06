@@ -116,7 +116,7 @@ topology_list.each do |topology|
     nodes << node_details.name
 
     # When the nodes has driver/machine option details lets use them
-    if nodes.drivers?
+    if node_details.driver?
       active_driver = nodes.driver_type
       with_machine_options(nodes.machine_options)
     end

@@ -70,7 +70,7 @@ describe TopologyTruck::ConfigParms do
     end
   end
 
-  shared_examples_for 'Pipelines --- Stages --- Topologies --- and more ... ' do
+  shared_examples_for 'pl --- st --- tp --- more' do
     context 'Check all the config.json options...' do
       it 'PIPELINE details? [pl_level?]' do
         expect(tp_trk_parms.pl_level?).to eql(pl_level)
@@ -154,7 +154,7 @@ describe TopologyTruck::ConfigParms do
     end
   end
 
-  describe 'topology-truck: { }' do
+  describe '*** topology-truck: { } *** ' do
     raw_data = {
       'topology-truck' => {}
     }
@@ -180,10 +180,10 @@ describe TopologyTruck::ConfigParms do
 
     let(:tp_trk_parms) { TopologyTruck::ConfigParms.new(raw_data, node) }
 
-    it_behaves_like 'Pipelines --- Stages --- Topologies --- and more ... '
+    it_behaves_like 'pl --- st --- tp --- more'
   end
 
-  describe 'all levels empty' do
+  describe '*** {pl: {}, st: {}, tp: {} } ***' do
     raw_data = {
       'topology-truck' => {
         'pipeline' => {},
@@ -212,10 +212,10 @@ describe TopologyTruck::ConfigParms do
     let(:any_aws) { false }
     let(:tp_trk_parms) { TopologyTruck::ConfigParms.new(raw_data, node) }
 
-    it_behaves_like 'Pipelines --- Stages --- Topologies --- and more ... '
+    it_behaves_like 'pl --- st --- tp --- more'
   end
 
-  describe '.simple aws driver for pipeline' do
+  describe '*** pl driver only (aws) ***' do
     raw_data = {
       'topology-truck' => {
         'pipeline' => {
@@ -245,10 +245,10 @@ describe TopologyTruck::ConfigParms do
 
     let(:tp_trk_parms) { TopologyTruck::ConfigParms.new(raw_data, node) }
 
-    it_behaves_like 'Pipelines --- Stages --- Topologies --- and more ... '
+    it_behaves_like 'pl --- st --- tp --- more'
   end
 
-  describe 'simple ssh driver for pipeline' do
+  describe '*** pl driver only (ssh) ***' do
     raw_data = {
       'topology-truck' => {
         'pipeline' => {
@@ -278,10 +278,10 @@ describe TopologyTruck::ConfigParms do
 
     let(:tp_trk_parms) { TopologyTruck::ConfigParms.new(raw_data, node) }
 
-    it_behaves_like 'Pipelines --- Stages --- Topologies --- and more ... '
+    it_behaves_like 'pl --- st --- tp --- more'
   end
 
-  describe 'simple ssh driver for pipeline' do
+  describe '*** pl drv with st: {} ***' do
     raw_data = {
       'topology-truck' => {
         'pipeline' => {
@@ -312,10 +312,10 @@ describe TopologyTruck::ConfigParms do
 
     let(:tp_trk_parms) { TopologyTruck::ConfigParms.new(raw_data, node) }
 
-    it_behaves_like 'Pipelines --- Stages --- Topologies --- and more ... '
+    it_behaves_like 'pl --- st --- tp --- more'
   end
 
-  describe 'all stages have one topology' do
+  describe '*** single tp for a, u, r, d ***' do
     raw_data = {
       'topology-truck' => {
         'pipeline' => {
@@ -351,15 +351,12 @@ describe TopologyTruck::ConfigParms do
 
     let(:tp_trk_parms) { TopologyTruck::ConfigParms.new(raw_data, node) }
 
-    it_behaves_like 'Pipelines --- Stages --- Topologies --- and more ... '
+    it_behaves_like 'pl --- st --- tp --- more'
   end
 
-  describe 'all stages have one topology' do
+  describe '*** no pl, single tp, all stages, mixed drivers ***' do
     raw_data = {
       'topology-truck' => {
-        'pipeline' => {
-          'driver' => 'aws'
-        },
         'stages' => {
           'acceptance' => {
             'topologies' => ['a'],
@@ -376,6 +373,55 @@ describe TopologyTruck::ConfigParms do
           'delivered' => {
             'topologies' => ['d'],
             'driver' => 'aws'
+          }
+        }
+      }
+    }
+
+    let(:pl_level) { false }
+    let(:st_level) { true }
+    let(:tp_level) { false }
+    let(:driver) { '_unspecified_' }
+    let(:driver_type) { '_unspecified_' }
+    let(:template_mach_opts) { {} }
+    let(:pl_machine_options) { {} }
+    let(:a_tps) { ['a'] }
+    let(:u_tps) { ['u'] }
+    let(:r_tps) { ['r'] }
+    let(:d_tps) { ['d'] }
+    let(:a_drv) { 'ssh' }
+    let(:u_drv) { 'aws' }
+    let(:r_drv) { 'ssh' }
+    let(:d_drv) { 'aws' }
+    let(:pl_tps) { %w(a u r d) }
+    let(:any_ssh) { true }
+    let(:any_aws) { true }
+
+    let(:tp_trk_parms) { TopologyTruck::ConfigParms.new(raw_data, node) }
+
+    it_behaves_like 'pl --- st --- tp --- more'
+  end
+
+  describe '*** pl drv with some st drv ***' do
+    raw_data = {
+      'topology-truck' => {
+        'pipeline' => {
+          'driver' => 'aws'
+        },
+        'stages' => {
+          'acceptance' => {
+            'topologies' => ['a'],
+            'driver' => 'ssh'
+          },
+          'union' => {
+            'topologies' => ['u']
+          },
+          'rehearsal' => {
+            'topologies' => ['r'],
+            'driver' => 'ssh'
+          },
+          'delivered' => {
+            'topologies' => ['d']
           }
         }
       }
@@ -402,7 +448,7 @@ describe TopologyTruck::ConfigParms do
 
     let(:tp_trk_parms) { TopologyTruck::ConfigParms.new(raw_data, node) }
 
-    it_behaves_like 'Pipelines --- Stages --- Topologies --- and more ... '
+    it_behaves_like 'pl --- st --- tp --- more'
   end
 
   describe 'Add machine options' do
@@ -468,6 +514,7 @@ describe TopologyTruck::ConfigParms do
     let(:pl_machine_options) { { :bootstrap_options => { :instance_type => 'INSTANCE_TYPE', :key_name => 'KEY_NAME', :security_group_ids => 'SECURITY_GROUP_IDS' } } }
     let(:st_machine_options) { { :bootstrap_options => { :instance_type => 'ACCEPT_INSTANCE_TYPE', :key_name => 'ACCEPT_KEY_NAME', :security_group_ids => 'ACCEPT_SECURITY_GROUP_IDS' } } }
     let(:tp_machine_options) { { :bootstrap_options => { :security_group_ids => 'TOPOLOGY_TEST_SECURITY_GROUP_ID' } } }
+
     let(:tp_trk_parms) { TopologyTruck::ConfigParms.new(raw_data, node) }
 
     it_behaves_like 'Machine Options Examples'

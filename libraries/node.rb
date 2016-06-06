@@ -48,7 +48,7 @@ class Topo
 
     # TODO: Need to implement these three functions....
     # Returns true when the node details include provisioning info...
-    def drivers?
+    def driver?
       false
     end
 
