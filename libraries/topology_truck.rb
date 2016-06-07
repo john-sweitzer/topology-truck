@@ -64,6 +64,7 @@ class TopologyTruck
       end
       @ssh_key
     end
+
     # CLASS METHOD - END...
 
     def initialize(raw_data, node)
@@ -294,7 +295,7 @@ class TopologyTruck
     # rubocop:disable CyclomaticComplexity
     # rubocop:disable PerceivedComplexity
     # rubocop:disable AbcSize
-    # @returns list of machine options found in the hash
+    # @returns list of machine option fragments found in the hash
     def aws_machine_options_list(opt_hash)
       list = []
       if opt_hash[:convergence_options]

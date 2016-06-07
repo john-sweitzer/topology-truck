@@ -14,6 +14,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
+# rubocop:disable LineLength
+# rubocop:disable ClassLength
+
 require 'chef/data_bag_item'
 require_relative './node'
 
@@ -22,8 +26,7 @@ class Topo
   class Topology
     @topos = {}
 
-    attr_reader :name
-    attr_accessor :blueprint
+    attr_reader :name, :version, :buildstamp, :buildid, :strategy, :tp_chef_environment
 
     # class method to get or create Topo instance
     def self.get_topo(name, data_bag = 'topologies')
@@ -51,9 +54,18 @@ class Topo
       topo
     end
 
+    # rubocop:disable AbcSize
+    # rubocop:disable MethodLength
     def initialize(name, raw_data)
-      @name = name
       @raw_data = raw_data
+      @name = @raw_data['name'] || name
+      @version = @raw_data['version']
+      @buildstamp = @raw_data['buildstamp']
+      @buildid = @raw_data['buildid']
+      @strategy = @raw_data['strategy']
+      @tp_chef_environment = @raw_data['chef_environment']
+      @tp_provisioning =   @raw_data['provisioning']
+
       @raw_nodes = @raw_data['nodes'] || []
       @chef_environment = @raw_data['chef_environment']
       @tags = @raw_data['tags']
@@ -62,10 +74,10 @@ class Topo
       @nd_provision = {}
       @nd_prov = false
 
-      @tp_provisioning = true if @raw_data['provisioning']
-
       nodes
     end
+    # rubocop:enable AbcSize
+    # rubocop:enable MethodLength
 
     def nodes
       return @nodes if @nodes
@@ -97,8 +109,10 @@ class Topo
       node_data['chef_environment'] ||= @chef_environment if @chef_environment
       node_data['attributes'] = inflate_attrs(node_data)
 
-      @nd_prov = true if node_data['provisioning'] # jws
-      @nd_provision[node_data['name']] = true if @nd_prov
+      @nd_prov = true if node_data['provisioning']
+      #
+      extract_provisioning_details(node_data['name'], node_data['provisioning']) if node_data['provisioning']
+      #
       if @tags
         node_data['tags'] ||= []
         node_data['tags'] |= @tags
@@ -132,13 +146,40 @@ class Topo
       node
     end
 
+    # { drv1: { machine_options: {}, drv2: {machine_options: {} }
+    def extract_provisioning_details(node_name, clause)
+      Chef::Log.warn("@@@@@@ node_name......  #{node_name}")
+      Chef::Log.warn("@@@@@@ clause.........  #{clause}")
+      clause.each do |drv, mo|
+        Chef::Log.warn("@@@@@@ drv.........  #{drv}")
+        Chef::Log.warn("@@@@@@ mo..........  #{mo}")
+
+        @nd_provision[node_name] = {} unless @nd_provision[node_name]
+        @nd_provision[node_name][drv] = { machine_options: mo['machine_options'] }
+        Chef::Log.warn("@@@@@@ nd_provision..........  #{@nd_provision}")
+      end
+    end
+
+    def driver(nd_type, drv_type)
+      return false unless @nd_provision[nd_type]
+      return false unless @nd_provision[nd_type][drv_type]
+      true
+    end
+
+    def node_machine_options(nd_name, drv_type)
+      return {} unless @nd_provision[nd_name]
+      return {} unless @nd_provision[nd_name][drv_type]
+      return {} unless @nd_provision[nd_name][drv_type][:machine_options]
+      @nd_provision[nd_name][drv_type][:machine_options]
+    end
+
     def provisioning?
       return true if @tp_provisioning
       return true if @nd_prov
       false
     end
 
-    def nd_provisioning(node)
+    def nd_provisioning?(node)
       return false unless @nd_prov
       return false if @nd_provision == {}
       return false unless @nd_provision[node]

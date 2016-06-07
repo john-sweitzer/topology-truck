@@ -115,10 +115,17 @@ topology_list.each do |topology|
     # Keep track of the node names for reporting purposes...
     nodes << node_details.name
 
-    # When the nodes has driver/machine option details lets use them
-    if node_details.driver?
-      active_driver = nodes.driver_type
-      with_machine_options(nodes.machine_options)
+    # Ponder:
+    #   Are we looking for machine options for the "active_driver" or
+    #   are we looking for machine options specific to this node (for example, mongolabs)
+
+    # When the current node has machine option fragments for the active driver
+    # we need to apply them to the machine options...
+    nd_mo_frgs_list = []
+    if topology.driver(node_details.name, active_driver)
+      nd_mo_frgs = topology.node_machine_options(node_details.name)
+      nd_mo_frgs_list = tp_truck_parms.aws_machine_options_list(nd_mo_frgs) if active_driver == 'aws'
+      nd_mo_frgs_list = tp_truck_parms.ssh_machine_options_list(nd_mo_frgs) if active_driver == 'ssh'
     end
 
     # Initialize the provisioning driver after loading it..
@@ -152,9 +159,9 @@ topology_list.each do |topology|
       chef_environment delivery_environment # TODO: logic for topology env
 
       # Add NODE specified machine options...
-      # node_details.machine_options_list(active_driver).each do |opt|
-      #   add_machine_options opt
-      # end
+      nd_mo_frgs_list.each do |fragment|
+        add_machine_options fragment
+      end
 
       add_machine_options transport_options: { ip_address: node_details.ssh_host } if node_details.ssh_host
       add_machine_options convergence_options: { ssl_verify_mode: :verify_none }
