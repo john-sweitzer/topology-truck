@@ -161,7 +161,7 @@ class Topo
       end
     end
 
-    def driver(nd_type, drv_type)
+    def driver_type?(nd_type, drv_type)
       return false unless @nd_provision[nd_type]
       return false unless @nd_provision[nd_type][drv_type]
       true
