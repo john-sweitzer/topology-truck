@@ -582,4 +582,55 @@ describe TopologyTruck::ConfigParms do
 
     it_behaves_like 'Machine Options Examples'
   end
+
+  describe 'Add machine options for tp only' do
+    raw_data = {
+      'topology-truck' => {
+        'topologies' => {
+          'topo_a' => {
+            'stage' => 'acceptance',
+            'driver' => 'aws',
+            'machine_options' => {
+              convergence_options: {
+                chef_config: 'TOPOLOGY_TEST_CHEF_CONFIG'
+              }
+            }
+          },
+          'topo_b' => {
+            'stage' => 'acceptance',
+            'machine_options' => {
+              convergence_options: {
+                chef_config: 'TOPOLOGY_TEST_CHEF_CONFIG'
+              }
+            }
+          },
+          'topo_c' => {
+            'stage' => 'acceptance',
+            'driver' => 'aws'
+          },
+          'topo_d' => {
+            'stage' => 'acceptance'
+          }
+        }
+      }
+    }
+
+    let(:tp_trk_parms) { TopologyTruck::ConfigParms.new(raw_data, node) }
+
+    it 'tp_trk_parms.provisionable(topo_a)?' do
+      expect(tp_trk_parms.provisionable?('topo_a')).to eql(true)
+    end
+
+    it 'tp_trk_parms.provisionable(topo_b)?' do
+      expect(tp_trk_parms.provisionable?('topo_b')).to eql(false)
+    end
+
+    it 'tp_trk_parms.provisionable(topo_c)?' do
+      expect(tp_trk_parms.provisionable?('topo_c')).to eql(true)
+    end
+
+    it 'tp_trk_parms.provisionable(topo_d)?' do
+      expect(tp_trk_parms.provisionable?('topo_d')).to eql(false)
+    end
+  end
 end

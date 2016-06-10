@@ -25,7 +25,7 @@ workspace = node['delivery']['workspace']
 directory "#{workspace['root']}/chef/provisioning/ssh" do
   mode 00755
   owner node['delivery_builder']['build_user']
-#  group node['delivery_builder']['build_user']
+  #  group node['delivery_builder']['build_user']
   recursive true
   action :create
   only_if { deliver_using_ssh }

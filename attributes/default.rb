@@ -28,35 +28,4 @@ debug_config = "log_level :info \n"\
     }
   }
   #
-
-  #
-  default[project][stage]['topology'] =
-    {
-      name: "#{stage}-#{project}",
-      version: '_not_used_',
-      buildstamp: '_not_used_',
-      buildid: '_not_used_',
-      strategy: 'direct_to_node',
-      chef_environment: 'tp_1n_z',
-      tags: [],
-      nodes: [
-        {
-          'name' => "#{stage}-#{project}",
-          'node_type' => 'SingleNode',
-          'tags' => [],
-          'normal' => {
-            'topo' => {
-              'node_type' => 'SingleNode',
-              'name' => "#{stage}-#{project}"
-            },
-            'yum' => {
-              'version' => '3.2.20',
-              'newattr' => 'tracker'
-            }
-          },
-          'run_list' => ['recipe[yum::default]']
-        }
-      ],
-      'services' => []
-    }
 end

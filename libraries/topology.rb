@@ -73,6 +73,8 @@ class Topo
 
       @nd_provision = {}
       @nd_prov = false
+      @tp_aws  = false
+      @tp_ssh  = false
 
       nodes
     end
@@ -148,15 +150,14 @@ class Topo
 
     # { drv1: { machine_options: {}, drv2: {machine_options: {} }
     def extract_provisioning_details(node_name, clause)
-      Chef::Log.warn("@@@@@@ node_name......  #{node_name}")
-      Chef::Log.warn("@@@@@@ clause.........  #{clause}")
       clause.each do |drv, mo|
-        Chef::Log.warn("@@@@@@ drv.........  #{drv}")
-        Chef::Log.warn("@@@@@@ mo..........  #{mo}")
-
+        #
+        @tp_aws = true if drv == 'aws'
+        @tp_ssh = true if drv == 'ssh'
+        #
         @nd_provision[node_name] = {} unless @nd_provision[node_name]
         @nd_provision[node_name][drv] = { machine_options: mo['machine_options'] }
-        Chef::Log.warn("@@@@@@ nd_provision..........  #{@nd_provision}")
+        #
       end
     end
 
@@ -166,6 +167,20 @@ class Topo
       true
     end
 
+    def aws_driver?
+      return true if @tp_aws
+      return false unless @tp_provisioning
+      return true if @tp_provisioning['aws']
+      false
+    end
+
+    def ssh_driver?
+      return true if @tp_ssh
+      return false unless @tp_provisioning
+      return true if @tp_provisioning['ssh']
+      false
+    end
+
     def node_machine_options(nd_name, drv_type)
       return {} unless @nd_provision[nd_name]
       return {} unless @nd_provision[nd_name][drv_type]
@@ -173,13 +188,13 @@ class Topo
       @nd_provision[nd_name][drv_type][:machine_options]
     end
 
-    def provisioning?
+    def provisionable?
       return true if @tp_provisioning
       return true if @nd_prov
       false
     end
 
-    def nd_provisioning?(node)
+    def nd_provisionable?(node)
       return false unless @nd_prov
       return false if @nd_provision == {}
       return false unless @nd_provision[node]

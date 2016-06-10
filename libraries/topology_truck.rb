@@ -580,5 +580,13 @@ class TopologyTruck
       return @tp_map[tp]['machine_options'] if @tp_map[tp]['machine_options']
       { 'none_specified' => true }
     end
+
+    def provisionable?(tp)
+      return false unless @tp_map[tp]
+      has_drv = has_mo = false
+      has_drv = true unless @tp_map[tp]['driver'] == '_unspecified_'
+      has_mo = true unless @tp_map[tp]['machine_options'] == {}
+      has_drv && has_mo
+    end
   end
 end
