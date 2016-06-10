@@ -8,4 +8,4 @@
 # License:: Apache License, Version 2.0
 #
 
-include_recipe '_process_topologies'
+include_recipe 'topology-truck::_process_topologies'
