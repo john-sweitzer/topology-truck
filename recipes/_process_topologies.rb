@@ -86,8 +86,8 @@ debug_config = "log_level :info \n"\
 topology_list.each do |topology|
   tp_name = topology.name
 
-  # active_driver_type becomes  the driver calculated (based on pl, st, and tp) from the config.json
-  # details for the current topology
+  # active_driver_type becomes  the driver calculated (based on pl, st, and tp)
+  #  from the config.json details for the current topology
   if tp_truck_parms.drivers?
     active_driver_type = tp_truck_parms.tp_driver_type(tp_name)
     with_machine_options(tp_truck_parms.tp_machine_options(tp_name))
@@ -142,7 +142,6 @@ topology_list.each do |topology|
       ssh_key = TopologyTruck::ConfigParms.ssh_key(node)['name'] if loaded_driver == 'aws'
     end
     #
-    Chef::Log.warn("STAGE:.........  #{stage} with #{phase}")
     include_ip_address = node_details.ssh_host && loaded_driver == 'ssh'
     # Set up the machine for this node...
     machine node_details.name do
