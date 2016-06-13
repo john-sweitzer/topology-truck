@@ -14,7 +14,7 @@ raw_data['topology-truck'] = node['delivery']['config']['topology-truck']
 
 config = TopologyTruck::ConfigParms.new(raw_data.to_hash, node) if raw_data['topology-truck']
 
-deliver_using_ssh = config.pl_driver_type == 'ssh' if config
+deliver_using_ssh = config.any_ssh_drivers? if config
 
 chef_gem 'chef-provisioning-ssh' do
   only_if { deliver_using_ssh }
